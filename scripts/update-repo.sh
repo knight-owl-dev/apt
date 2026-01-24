@@ -280,7 +280,9 @@ cd "$REPO_ROOT/dists/stable"
 echo "==> Release file generated:"
 cat Release
 
-# Clean up
-rm -rf "$ARTIFACTS_DIR"
+# Clean up (skip with KEEP_ARTIFACTS=1 for testing)
+if [[ "${KEEP_ARTIFACTS:-}" != "1" ]]; then
+    rm -rf "$ARTIFACTS_DIR"
+fi
 
 echo "==> Done! Remember to sign the Release file."
