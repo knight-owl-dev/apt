@@ -1,0 +1,22 @@
+Origin: Knight Owl
+Label: Knight Owl
+Suite: stable
+Codename: stable
+Architectures: amd64 arm64
+Components: main
+Date: Sat, 24 Jan 2026 15:56:02 +0000
+MD5Sum:
+ c5ca52d7762a70da47f841cb508fa46c      497 main/binary-amd64/Packages
+ ebc972466286e515950dcc02cc19a730      497 main/binary-arm64/Packages
+ 2fb19f14291d94f1002030b7f741da5e      374 main/binary-amd64/Packages.gz
+ 07a55a43df6f5c6cbaeff15034a25e91      374 main/binary-arm64/Packages.gz
+SHA1:
+ 23a87b76f67f16acb87be2fa3f5d05b1b035fb20      497 main/binary-amd64/Packages
+ a06eb2e9196a835d762b90627461d802e14d4892      497 main/binary-arm64/Packages
+ 428b5effe7e9a6117ce4ddcceccd3f1d1022c357      374 main/binary-amd64/Packages.gz
+ 8957bc80997f8c07d9a619e250650f8610d70410      374 main/binary-arm64/Packages.gz
+SHA256:
+ 2b4aecb452944b30a92066bab76c2f5064d7f217ecc5778e8828b1b6095ff386      497 main/binary-amd64/Packages
+ 7367e13493acbfb0e09cbe03768813a2452ef7299a5fbb4e7078f13cfb1556a5      497 main/binary-arm64/Packages
+ 8a858e216e3046a4fc109348df89502277c1e2928f9708314d400fe7030f0c23      374 main/binary-amd64/Packages.gz
+ 5265004792945bb437358dab10071294f724bc7dbb0735f6d54eadb20c76196b      374 main/binary-arm64/Packages.gz
