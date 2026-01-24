@@ -39,6 +39,54 @@ if ! command -v yq &> /dev/null; then
     exit 1
 fi
 
+# Helper functions for cross-platform file stats and checksums
+get_file_size() {
+    local file="$1"
+    if stat -c%s "$file" 2>/dev/null; then
+        return 0
+    elif stat -f%z "$file" 2>/dev/null; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+get_md5() {
+    local file="$1"
+    local result
+    if result=$(md5sum "$file" 2>/dev/null | cut -d' ' -f1) && [[ -n "$result" ]]; then
+        echo "$result"
+    elif result=$(md5 -q "$file" 2>/dev/null); then
+        echo "$result"
+    else
+        return 1
+    fi
+}
+
+get_sha1() {
+    local file="$1"
+    local result
+    if result=$(sha1sum "$file" 2>/dev/null | cut -d' ' -f1) && [[ -n "$result" ]]; then
+        echo "$result"
+    elif result=$(shasum -a 1 "$file" 2>/dev/null | cut -d' ' -f1); then
+        echo "$result"
+    else
+        return 1
+    fi
+}
+
+get_sha256() {
+    local file="$1"
+    local result
+    if result=$(sha256sum "$file" 2>/dev/null | cut -d' ' -f1) && [[ -n "$result" ]]; then
+        echo "$result"
+    elif result=$(shasum -a 256 "$file" 2>/dev/null | cut -d' ' -f1); then
+        echo "$result"
+    else
+        return 1
+    fi
+}
+
 # Read package list and architectures from config
 mapfile -t ALL_PACKAGES < <(yq -r '.packages[].name' "$CONFIG_FILE")
 mapfile -t ALL_ARCHS < <(yq -r '.packages[].architectures[]' "$CONFIG_FILE" | sort -u)
@@ -87,8 +135,17 @@ done
 echo "==> Resolving versions for unchanged packages..."
 for package in "${ALL_PACKAGES[@]}"; do
     if [[ ! -v "VERSIONS[$package]" ]]; then
-        # Try to get version from existing Packages file
-        existing_version=$(grep -A1 "^Package: $package$" "$REPO_ROOT/dists/stable/main/binary-amd64/Packages" 2>/dev/null | grep "^Version:" | cut -d' ' -f2 || true)
+        # Try to get version from existing Packages files across all architectures
+        existing_version=""
+        for arch in "${ALL_ARCHS[@]}"; do
+            pkgs_file="$REPO_ROOT/dists/stable/main/binary-$arch/Packages"
+            if [[ -f "$pkgs_file" ]]; then
+                existing_version=$(grep -A1 "^Package: $package$" "$pkgs_file" 2>/dev/null | grep "^Version:" | cut -d' ' -f2 || true)
+                if [[ -n "$existing_version" ]]; then
+                    break
+                fi
+            fi
+        done
         if [[ -n "$existing_version" ]]; then
             VERSIONS["$package"]="$existing_version"
             echo "Package $package: using existing version $existing_version"
@@ -143,10 +200,22 @@ for arch in "${ALL_ARCHS[@]}"; do
         dpkg-deb -f "$deb_file" > "$ARTIFACTS_DIR/control"
 
         # Calculate checksums
-        size=$(stat -c%s "$deb_file" 2>/dev/null || stat -f%z "$deb_file")
-        md5=$(md5sum "$deb_file" 2>/dev/null | cut -d' ' -f1 || md5 -q "$deb_file")
-        sha1=$(sha1sum "$deb_file" 2>/dev/null | cut -d' ' -f1 || shasum -a 1 "$deb_file" | cut -d' ' -f1)
-        sha256=$(sha256sum "$deb_file" 2>/dev/null | cut -d' ' -f1 || shasum -a 256 "$deb_file" | cut -d' ' -f1)
+        if ! size=$(get_file_size "$deb_file"); then
+            echo "Error: Failed to get file size for $deb_file"
+            exit 1
+        fi
+        if ! md5=$(get_md5 "$deb_file"); then
+            echo "Error: Failed to compute MD5 for $deb_file"
+            exit 1
+        fi
+        if ! sha1=$(get_sha1 "$deb_file"); then
+            echo "Error: Failed to compute SHA1 for $deb_file"
+            exit 1
+        fi
+        if ! sha256=$(get_sha256 "$deb_file"); then
+            echo "Error: Failed to compute SHA256 for $deb_file"
+            exit 1
+        fi
 
         # Determine pool path (first letter of package name)
         first_letter="${package:0:1}"
@@ -184,22 +253,22 @@ cd "$REPO_ROOT/dists/stable"
     echo "MD5Sum:"
     for f in main/binary-*/Packages main/binary-*/Packages.gz; do
         [ -f "$f" ] || continue
-        size=$(stat -c%s "$f" 2>/dev/null || stat -f%z "$f")
-        md5=$(md5sum "$f" 2>/dev/null | cut -d' ' -f1 || md5 -q "$f")
+        size=$(get_file_size "$f")
+        md5=$(get_md5 "$f")
         printf " %s %8d %s\n" "$md5" "$size" "$f"
     done
     echo "SHA1:"
     for f in main/binary-*/Packages main/binary-*/Packages.gz; do
         [ -f "$f" ] || continue
-        size=$(stat -c%s "$f" 2>/dev/null || stat -f%z "$f")
-        sha1=$(sha1sum "$f" 2>/dev/null | cut -d' ' -f1 || shasum -a 1 "$f" | cut -d' ' -f1)
+        size=$(get_file_size "$f")
+        sha1=$(get_sha1 "$f")
         printf " %s %8d %s\n" "$sha1" "$size" "$f"
     done
     echo "SHA256:"
     for f in main/binary-*/Packages main/binary-*/Packages.gz; do
         [ -f "$f" ] || continue
-        size=$(stat -c%s "$f" 2>/dev/null || stat -f%z "$f")
-        sha256=$(sha256sum "$f" 2>/dev/null | cut -d' ' -f1 || shasum -a 256 "$f" | cut -d' ' -f1)
+        size=$(get_file_size "$f")
+        sha256=$(get_sha256 "$f")
         printf " %s %8d %s\n" "$sha256" "$size" "$f"
     done
 } > Release

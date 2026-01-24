@@ -83,6 +83,7 @@ dpkg -s "$PACKAGE" | grep -E "^(Package|Version|Status):"
 if [ -n "$VERIFY_CMD" ]; then
     echo ""
     echo "=== Running verify command ==="
+    # shellcheck disable=SC2086  # Word splitting is intentional for command args
     $VERIFY_CMD
 fi
 

@@ -18,7 +18,7 @@ jobs:
 
     steps:
       - name: Checkout apt repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install yq
         run: sudo snap install yq
@@ -42,8 +42,9 @@ jobs:
       - name: Update repository
         env:
           GH_TOKEN: ${{ github.token }}
+          VERSIONS: ${{ steps.args.outputs.versions }}
         run: |
-          ./scripts/update-repo.sh ${{ steps.args.outputs.versions }}
+          ./scripts/update-repo.sh $VERSIONS
 
       - name: Import GPG key
         run: |
