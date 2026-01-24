@@ -5,7 +5,9 @@ This guide explains how to add a new package to the `apt` repository.
 ## Prerequisites
 
 - The package must be hosted on GitHub Releases
+- Release tags must use semver format with `v` prefix (e.g., `v1.0.0`, `v2.1.0-beta.1`)
 - Release assets must follow the naming convention: `<package>_{version}_{arch}.deb`
+- Releases must include a `SHA256SUMS` file for checksum verification
 - Supported architectures: `amd64`, `arm64`
 
 ## Steps
@@ -67,7 +69,8 @@ export function onRequest(context) {
   const filename = path.split('/').pop();
 
   // Update the regex to match your package name
-  const match = filename.match(/^my-new-package_([^_]+)_(amd64|arm64)\.deb$/);
+  // Version must be semver: X.Y.Z or X.Y.Z-prerelease (e.g., 1.0.0, 2.1.0-beta.1)
+  const match = filename.match(/^my-new-package_(\d+\.\d+\.\d+(?:-[a-zA-Z0-9.]+)?)_(amd64|arm64)\.deb$/);
 
   if (!match) {
     return new Response('Not found', { status: 404 });
