@@ -42,10 +42,13 @@ tests/                                   # Docker-based installation tests
 ### Update Repository
 
 ```bash
-# Run locally (generates unsigned metadata)
+# All packages, latest versions
 ./scripts/update-repo.sh
 
-# With specific version
+# Single package, latest version
+./scripts/update-repo.sh keystone-cli
+
+# Single package, specific version
 ./scripts/update-repo.sh keystone-cli:0.1.9
 ```
 

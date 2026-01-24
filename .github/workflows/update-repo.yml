@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       versions:
-        description: 'Package versions (e.g., "keystone-cli:0.1.9"). Leave empty for latest.'
+        description: 'Packages to update (e.g., "keystone-cli" or "keystone-cli:0.1.9"). Leave empty for all packages.'
         required: false
         type: string
   repository_dispatch:
@@ -29,13 +29,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           if [ -n "${{ inputs.versions }}" ]; then
-            # Use provided versions
+            # Use workflow_dispatch input
             echo "versions=${{ inputs.versions }}" >> "$GITHUB_OUTPUT"
-          elif [ -n "${{ github.event.client_payload.package }}" ]; then
+          elif [ -n "${{ github.event.client_payload.versions }}" ]; then
             # Use repository_dispatch payload
-            PACKAGE="${{ github.event.client_payload.package }}"
-            VERSION="${{ github.event.client_payload.version }}"
-            echo "versions=${PACKAGE}:${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "versions=${{ github.event.client_payload.versions }}" >> "$GITHUB_OUTPUT"
           else
             # Fetch latest for all packages
             echo "versions=" >> "$GITHUB_OUTPUT"

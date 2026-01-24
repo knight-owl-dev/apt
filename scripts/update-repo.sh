@@ -2,8 +2,13 @@
 set -euo pipefail
 
 # Update apt repository metadata for all configured packages
-# Usage: ./scripts/update-repo.sh [package:version ...]
-# Example: ./scripts/update-repo.sh keystone-cli:0.1.9
+#
+# Usage: ./scripts/update-repo.sh [package[:version] ...]
+#
+# Examples:
+#   ./scripts/update-repo.sh                      # All packages, latest versions
+#   ./scripts/update-repo.sh keystone-cli         # Only keystone-cli, latest version
+#   ./scripts/update-repo.sh keystone-cli:0.1.9   # Only keystone-cli, specific version
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
@@ -12,10 +17,17 @@ ARTIFACTS_DIR="$REPO_ROOT/artifacts"
 
 # Parse command line arguments into associative array
 declare -A VERSIONS
+declare -a REQUESTED_PACKAGES=()
 for arg in "$@"; do
-    package="${arg%%:*}"
-    version="${arg#*:}"
-    VERSIONS["$package"]="$version"
+    if [[ "$arg" == *:* ]]; then
+        package="${arg%%:*}"
+        version="${arg#*:}"
+        VERSIONS["$package"]="$version"
+    else
+        package="$arg"
+        # Version will be fetched later
+    fi
+    REQUESTED_PACKAGES+=("$package")
 done
 
 # Check for yq
@@ -25,14 +37,26 @@ if ! command -v yq &> /dev/null; then
 fi
 
 # Read package list and architectures from config
-mapfile -t PACKAGES < <(yq -r '.packages[].name' "$CONFIG_FILE")
+mapfile -t ALL_PACKAGES < <(yq -r '.packages[].name' "$CONFIG_FILE")
 mapfile -t ALL_ARCHS < <(yq -r '.packages[].architectures[]' "$CONFIG_FILE" | sort -u)
+
+# Use requested packages or all packages
+if [[ ${#REQUESTED_PACKAGES[@]} -gt 0 ]]; then
+    PACKAGES=("${REQUESTED_PACKAGES[@]}")
+else
+    PACKAGES=("${ALL_PACKAGES[@]}")
+fi
 
 mkdir -p "$ARTIFACTS_DIR"
 
 # Download packages
 echo "==> Downloading packages..."
 for package in "${PACKAGES[@]}"; do
+    # Validate package exists in config
+    if ! yq -e ".packages[] | select(.name == \"$package\")" "$CONFIG_FILE" &>/dev/null; then
+        echo "Error: Package '$package' not found in packages.yml"
+        exit 1
+    fi
     repo=$(yq -r ".packages[] | select(.name == \"$package\") | .repo" "$CONFIG_FILE")
     mapfile -t archs < <(yq -r ".packages[] | select(.name == \"$package\") | .architectures[]" "$CONFIG_FILE")
 
