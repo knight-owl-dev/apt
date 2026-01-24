@@ -18,23 +18,8 @@ REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 CONFIG_FILE="$REPO_ROOT/packages.yml"
 ARTIFACTS_DIR="$REPO_ROOT/artifacts"
 
-# Validate package name format (lowercase alphanumeric with hyphens)
-validate_package_name() {
-    local name="$1"
-    if [[ ! "$name" =~ ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$ ]]; then
-        echo "Error: Invalid package name '$name'. Must be lowercase alphanumeric with hyphens."
-        exit 1
-    fi
-}
-
-# Validate version format (semver: X.Y.Z or X.Y.Z-prerelease)
-validate_version() {
-    local version="$1"
-    if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
-        echo "Error: Invalid version '$version'. Must be semver format (e.g., 1.0.0 or 1.0.0-beta.1)."
-        exit 1
-    fi
-}
+# Load shared validation functions
+source "$SCRIPT_DIR/lib/validation.sh"
 
 # Parse command line arguments into associative array
 declare -A VERSIONS
@@ -43,12 +28,12 @@ for arg in "$@"; do
     if [[ "$arg" == *:* ]]; then
         package="${arg%%:*}"
         version="${arg#*:}"
-        validate_package_name "$package"
-        validate_version "$version"
+        validate_package_name "$package" || exit 1
+        validate_version "$version" || exit 1
         VERSIONS["$package"]="$version"
     else
         package="$arg"
-        validate_package_name "$package"
+        validate_package_name "$package" || exit 1
         # Version will be fetched later
     fi
     REQUESTED_PACKAGES+=("$package")

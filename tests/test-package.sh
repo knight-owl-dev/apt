@@ -22,6 +22,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 CONFIG_FILE="$REPO_ROOT/packages.yml"
 
+# Load shared validation functions
+source "$REPO_ROOT/scripts/lib/validation.sh"
+
 # Check for yq
 if ! command -v yq &> /dev/null; then
     echo "Error: yq is required. Install with: brew install yq (macOS) or snap install yq (Linux)"
@@ -31,6 +34,11 @@ fi
 # Get package name (default to first package in config)
 PACKAGE="${1:-$(yq -r '.packages[0].name' "$CONFIG_FILE")}"
 IMAGE="${2:-debian:bookworm-slim}"
+
+# Validate package name format (if user-provided)
+if [[ -n "${1:-}" ]]; then
+    validate_package_name "$PACKAGE" || exit 1
+fi
 
 # Validate package exists in config
 if ! yq -e ".packages[] | select(.name == \"$PACKAGE\")" "$CONFIG_FILE" &>/dev/null; then
