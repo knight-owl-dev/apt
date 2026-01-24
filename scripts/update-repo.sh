@@ -43,9 +43,9 @@ fi
 get_file_size() {
     local file="$1"
     local result
-    if result=$(stat -c%s "$file" 2>/dev/null) && [[ -n "$result" ]]; then
+    if result=$(stat -c %s "$file" 2>/dev/null) && [[ "$result" =~ ^[0-9]+$ ]]; then
         echo "$result"
-    elif result=$(stat -f%z "$file" 2>/dev/null) && [[ -n "$result" ]]; then
+    elif result=$(stat -f %z "$file" 2>/dev/null) && [[ "$result" =~ ^[0-9]+$ ]]; then
         echo "$result"
     else
         return 1
