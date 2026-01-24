@@ -27,13 +27,16 @@ jobs:
         id: args
         env:
           GH_TOKEN: ${{ github.token }}
+          # Pass untrusted inputs via env vars to prevent script injection
+          INPUT_VERSIONS: ${{ inputs.versions }}
+          PAYLOAD_VERSIONS: ${{ github.event.client_payload.versions }}
         run: |
-          if [ -n "${{ inputs.versions }}" ]; then
+          if [ -n "$INPUT_VERSIONS" ]; then
             # Use workflow_dispatch input
-            echo "versions=${{ inputs.versions }}" >> "$GITHUB_OUTPUT"
-          elif [ -n "${{ github.event.client_payload.versions }}" ]; then
+            echo "versions=$INPUT_VERSIONS" >> "$GITHUB_OUTPUT"
+          elif [ -n "$PAYLOAD_VERSIONS" ]; then
             # Use repository_dispatch payload
-            echo "versions=${{ github.event.client_payload.versions }}" >> "$GITHUB_OUTPUT"
+            echo "versions=$PAYLOAD_VERSIONS" >> "$GITHUB_OUTPUT"
           else
             # Fetch latest for all packages
             echo "versions=" >> "$GITHUB_OUTPUT"
