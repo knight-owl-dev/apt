@@ -141,9 +141,9 @@ for package in "${ALL_PACKAGES[@]}"; do
             pkgs_file="$REPO_ROOT/dists/stable/main/binary-$arch/Packages"
             if [[ -f "$pkgs_file" ]]; then
                 existing_version=$(awk -v pkg="$package" '
-                /^Package:/ { current_pkg = $2 }
-                /^Version:/ && current_pkg == pkg { print $2; exit }
-            ' "$pkgs_file")
+                    /^Package:/ { current_pkg = $2 }
+                    /^Version:/ && current_pkg == pkg { print $2; exit }
+                ' "$pkgs_file")
                 if [[ -n "$existing_version" ]]; then
                     break
                 fi

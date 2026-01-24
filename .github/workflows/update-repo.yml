@@ -44,6 +44,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           VERSIONS: ${{ steps.args.outputs.versions }}
         run: |
+          # shellcheck disable=SC2086  # Intentionally unquoted to pass space-separated package specs as individual args
           ./scripts/update-repo.sh $VERSIONS
 
       - name: Import GPG key
