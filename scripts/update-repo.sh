@@ -27,6 +27,15 @@ validate_package_name() {
     fi
 }
 
+# Validate version format (semver: X.Y.Z or X.Y.Z-prerelease)
+validate_version() {
+    local version="$1"
+    if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
+        echo "Error: Invalid version '$version'. Must be semver format (e.g., 1.0.0 or 1.0.0-beta.1)."
+        exit 1
+    fi
+}
+
 # Parse command line arguments into associative array
 declare -A VERSIONS
 declare -a REQUESTED_PACKAGES=()
@@ -35,6 +44,7 @@ for arg in "$@"; do
         package="${arg%%:*}"
         version="${arg#*:}"
         validate_package_name "$package"
+        validate_version "$version"
         VERSIONS["$package"]="$version"
     else
         package="$arg"
