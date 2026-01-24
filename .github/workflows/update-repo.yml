@@ -1,0 +1,174 @@
+name: Update Repository
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g., 0.1.9). Leave empty for latest.'
+        required: false
+        type: string
+  repository_dispatch:
+    types: [release-published]
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout apt repository
+        uses: actions/checkout@v6
+
+      - name: Determine version
+        id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            VERSION="${{ inputs.version }}"
+          elif [ -n "${{ github.event.client_payload.version }}" ]; then
+            VERSION="${{ github.event.client_payload.version }}"
+          else
+            # Fetch latest release version from keystone-cli
+            VERSION=$(gh release view --repo knight-owl-dev/keystone-cli --json tagName -q '.tagName' | sed 's/^v//')
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Using version: $VERSION"
+
+      - name: Download .deb packages
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          mkdir -p tmp
+          for arch in amd64 arm64; do
+            url="https://github.com/knight-owl-dev/keystone-cli/releases/download/v${VERSION}/keystone-cli_${VERSION}_${arch}.deb"
+            echo "Downloading: $url"
+            curl -fSL -o "tmp/keystone-cli_${VERSION}_${arch}.deb" "$url"
+          done
+
+      - name: Generate Packages files
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          for arch in amd64 arm64; do
+            deb_file="tmp/keystone-cli_${VERSION}_${arch}.deb"
+            packages_dir="dists/stable/main/binary-${arch}"
+            mkdir -p "$packages_dir"
+
+            # Extract control file from .deb
+            dpkg-deb -f "$deb_file" > tmp/control
+
+            # Get file size and checksums
+            size=$(stat -c%s "$deb_file")
+            md5=$(md5sum "$deb_file" | cut -d' ' -f1)
+            sha1=$(sha1sum "$deb_file" | cut -d' ' -f1)
+            sha256=$(sha256sum "$deb_file" | cut -d' ' -f1)
+
+            # Build Packages entry
+            {
+              cat tmp/control
+              echo "Filename: pool/main/k/keystone-cli/keystone-cli_${VERSION}_${arch}.deb"
+              echo "Size: $size"
+              echo "MD5sum: $md5"
+              echo "SHA1: $sha1"
+              echo "SHA256: $sha256"
+              echo ""
+            } > "$packages_dir/Packages"
+
+            # Create compressed version
+            gzip -9 -c "$packages_dir/Packages" > "$packages_dir/Packages.gz"
+
+            echo "Generated $packages_dir/Packages"
+          done
+
+      - name: Generate Release file
+        run: |
+          cd dists/stable
+
+          # Calculate checksums for all Packages files
+          {
+            echo "Origin: Knight Owl"
+            echo "Label: Knight Owl"
+            echo "Suite: stable"
+            echo "Codename: stable"
+            echo "Architectures: amd64 arm64"
+            echo "Components: main"
+            echo "Date: $(date -Ru)"
+            echo "MD5Sum:"
+            for f in main/binary-*/Packages main/binary-*/Packages.gz; do
+              [ -f "$f" ] || continue
+              size=$(stat -c%s "$f")
+              md5=$(md5sum "$f" | cut -d' ' -f1)
+              printf " %s %8d %s\n" "$md5" "$size" "$f"
+            done
+            echo "SHA1:"
+            for f in main/binary-*/Packages main/binary-*/Packages.gz; do
+              [ -f "$f" ] || continue
+              size=$(stat -c%s "$f")
+              sha1=$(sha1sum "$f" | cut -d' ' -f1)
+              printf " %s %8d %s\n" "$sha1" "$size" "$f"
+            done
+            echo "SHA256:"
+            for f in main/binary-*/Packages main/binary-*/Packages.gz; do
+              [ -f "$f" ] || continue
+              size=$(stat -c%s "$f")
+              sha256=$(sha256sum "$f" | cut -d' ' -f1)
+              printf " %s %8d %s\n" "$sha256" "$size" "$f"
+            done
+          } > Release
+
+          echo "Generated Release file"
+          cat Release
+
+      - name: Import GPG key
+        run: |
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
+          # Trust the key
+          KEY_ID=$(gpg --list-secret-keys --keyid-format=long | grep sec | head -1 | awk '{print $2}' | cut -d'/' -f2)
+          echo "${KEY_ID}:6:" | gpg --import-ownertrust
+
+      - name: Sign Release file
+        env:
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          cd dists/stable
+          KEY_ID=$(gpg --list-secret-keys --keyid-format=long | grep sec | head -1 | awk '{print $2}' | cut -d'/' -f2)
+
+          # Create InRelease (clearsigned)
+          gpg --default-key "$KEY_ID" \
+              --batch --yes \
+              --pinentry-mode loopback \
+              --passphrase "$GPG_PASSPHRASE" \
+              --clearsign \
+              -o InRelease \
+              Release
+
+          # Create Release.gpg (detached signature)
+          gpg --default-key "$KEY_ID" \
+              --batch --yes \
+              --pinentry-mode loopback \
+              --passphrase "$GPG_PASSPHRASE" \
+              --armor --detach-sign \
+              -o Release.gpg \
+              Release
+
+          echo "Generated InRelease and Release.gpg"
+
+      - name: Remove .gitkeep files
+        run: |
+          find dists -name ".gitkeep" -delete
+
+      - name: Commit and push
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add dists/
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update repository for keystone-cli v${VERSION}"
+            git push
+          fi
