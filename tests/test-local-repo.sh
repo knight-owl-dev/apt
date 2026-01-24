@@ -203,7 +203,7 @@ if [[ $FAILED -eq 0 ]]; then
         echo "  - dists/stable/main/binary-$arch/Packages.gz"
     done
     echo ""
-    echo "Note: Run 'git checkout dists/' to discard local changes,"
+    echo "Note: Run 'git restore dists/' to discard local changes,"
     echo "      or 'git diff dists/' to review them."
 else
     echo -e "${RED}Some validations failed!${NC}"

@@ -99,7 +99,7 @@ This downloads the `.deb`, extracts metadata, and generates `Packages` and `Rele
 > unsigned and will be overwritten by the workflow. Discard them before committing:
 
 ```bash
-git checkout -- dists/
+git restore dists/
 ```
 
 ### 4. Commit and push

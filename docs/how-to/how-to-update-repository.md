@@ -62,7 +62,7 @@ Requirements: `yq`, `gh` CLI, `dpkg-deb`, `curl`
 
 > **Note:** Local runs generate unsigned metadata for testing only. Do not commit these
 > files — the GitHub Actions workflow generates and signs the official metadata. Discard
-> local changes with `git checkout -- dists/` before committing.
+> local changes with `git restore dists/` before committing.
 
 ## Triggering the Workflow
 
