@@ -18,6 +18,15 @@ REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 CONFIG_FILE="$REPO_ROOT/packages.yml"
 ARTIFACTS_DIR="$REPO_ROOT/artifacts"
 
+# Validate package name format (lowercase alphanumeric with hyphens)
+validate_package_name() {
+    local name="$1"
+    if [[ ! "$name" =~ ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$ ]]; then
+        echo "Error: Invalid package name '$name'. Must be lowercase alphanumeric with hyphens."
+        exit 1
+    fi
+}
+
 # Parse command line arguments into associative array
 declare -A VERSIONS
 declare -a REQUESTED_PACKAGES=()
@@ -25,9 +34,11 @@ for arg in "$@"; do
     if [[ "$arg" == *:* ]]; then
         package="${arg%%:*}"
         version="${arg#*:}"
+        validate_package_name "$package"
         VERSIONS["$package"]="$version"
     else
         package="$arg"
+        validate_package_name "$package"
         # Version will be fetched later
     fi
     REQUESTED_PACKAGES+=("$package")
@@ -101,6 +112,11 @@ else
     UPDATE_PACKAGES=("${ALL_PACKAGES[@]}")
 fi
 
+# Ensure artifacts directory is not a symlink (prevent path traversal)
+if [[ -L "$ARTIFACTS_DIR" ]]; then
+    echo "Error: $ARTIFACTS_DIR is a symlink, refusing to continue"
+    exit 1
+fi
 mkdir -p "$ARTIFACTS_DIR"
 
 # Download packages (only those being updated)

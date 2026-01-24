@@ -1,5 +1,10 @@
 name: Update Repository
 
+# Security note: Both workflow_dispatch inputs and repository_dispatch payloads
+# are treated as untrusted. All inputs are validated against a safe character
+# regex before use. The repository_dispatch event can be triggered by anyone
+# with write access to the repository.
+
 on:
   workflow_dispatch:
     inputs:
