@@ -1,0 +1,19 @@
+# Package configuration for the apt repository
+#
+# To add a new package:
+#   1. Add an entry here
+#   2. Create a Cloudflare Function at functions/pool/main/<first-letter>/<package-name>/[[path]].js
+#
+# Fields:
+#   name          - Package name (required)
+#   repo          - GitHub repo for releases (required)
+#   architectures - List of supported architectures (required)
+#   verify        - Command to verify installation in tests (optional)
+
+packages:
+  - name: keystone-cli
+    repo: knight-owl-dev/keystone-cli
+    architectures:
+      - amd64
+      - arm64
+    verify: keystone-cli info

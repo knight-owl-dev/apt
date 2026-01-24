@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Knight Owl Apt Repository is a Debian/Ubuntu package repository for distributing `keystone-cli`. It uses a hybrid architecture:
+Knight Owl Apt Repository is a Debian/Ubuntu package repository. It uses a hybrid architecture:
 
 - **Cloudflare Pages**: Hosts static metadata files and landing page
 - **Cloudflare Functions**: Redirects `.deb` download requests to GitHub Releases
@@ -15,10 +15,12 @@ This design minimizes storage since only apt metadata is stored here, while bina
 ## Repository Structure
 
 ```plain
+packages.yml                             # Package configuration (add new packages here)
+scripts/update-repo.sh                   # Generate Packages and Release files
+scripts/sign-release.sh                  # Sign Release file with GPG
 dists/stable/main/binary-{amd64,arm64}/  # Apt package metadata (Packages, Packages.gz)
 dists/stable/                            # Release files (Release, InRelease, Release.gpg)
-functions/pool/main/k/keystone-cli/      # Cloudflare Function for binary redirects
-docs/how-to/                             # Workflow documentation
+functions/pool/main/<letter>/<package>/  # Cloudflare Functions for binary redirects
 tests/                                   # Docker-based installation tests
 ```
 
@@ -27,23 +29,33 @@ tests/                                   # Docker-based installation tests
 ### Test Installation
 
 ```bash
-# Test on Debian (default)
-./tests/test-keystone-cli.sh
+# Test a package (defaults to first in packages.yml)
+./tests/test-package.sh
 
-# Test on specific distribution
-./tests/test-keystone-cli.sh ubuntu:24.04
+# Test specific package on specific image
+./tests/test-package.sh keystone-cli ubuntu:24.04
+
+# Test all packages
+./tests/test-all.sh
 ```
 
 ### Update Repository
 
-Repository updates are automated via GitHub Actions. Trigger manually from the Actions UI or via `repository_dispatch`.
+```bash
+# Run locally (generates unsigned metadata)
+./scripts/update-repo.sh
 
-The workflow:
+# With specific version
+./scripts/update-repo.sh keystone-cli:0.1.9
+```
 
-1. Downloads `.deb` packages from keystone-cli releases
-2. Generates `Packages` and `Release` files
-3. Signs with GPG (requires `GPG_PRIVATE_KEY` and `GPG_PASSPHRASE` secrets)
-4. Commits and pushes to `main`
+Repository updates are also automated via GitHub Actions (trigger from Actions UI or via `repository_dispatch`).
+
+### Adding a New Package
+
+1. Add entry to `packages.yml`
+2. Create Cloudflare Function at `functions/pool/main/<first-letter>/<package>/[[path]].js`
+   (copy from existing keystone-cli function and update the repo path)
 
 ### Build Landing Page (handled by Cloudflare)
 
@@ -53,9 +65,9 @@ npx markdown-to-html-cli --source README.md --output index.html
 
 ## Architecture Details
 
-### Cloudflare Function (`functions/pool/main/k/keystone-cli/[[path]].js`)
+### Cloudflare Functions (`functions/pool/main/<letter>/<package>/[[path]].js`)
 
-Intercepts requests like `/pool/main/k/keystone-cli/keystone-cli_0.1.9_amd64.deb` and returns a 302 redirect to GitHub Releases. This allows apt clients to download binaries without storing them in this repository.
+Each package has a function that intercepts `.deb` download requests and returns a 302 redirect to GitHub Releases. This allows apt clients to download binaries without storing them in this repository.
 
 ### Apt Metadata Flow
 
