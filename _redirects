@@ -1,0 +1,2 @@
+# Cloudflare Pages redirects
+# Note: /pool/ requests are handled by functions/pool/main/k/keystone-cli/[[path]].js
