@@ -99,6 +99,103 @@ get_sha256() {
     fi
 }
 
+# Fetch SHA256SUMS file from a GitHub release (if available)
+# Caches the result in ARTIFACTS_DIR to avoid re-downloading
+# Returns 0 if checksums file exists, 1 if not available
+fetch_checksums_file() {
+    local repo="$1"
+    local version="$2"
+    local checksums_file="$ARTIFACTS_DIR/.checksums-${repo//\//-}-v${version}"
+
+    # Return cached file if already downloaded
+    if [[ -f "$checksums_file" ]]; then
+        echo "$checksums_file"
+        return 0
+    fi
+
+    # Try common checksums file names
+    local base_url="https://github.com/${repo}/releases/download/v${version}"
+    for name in SHA256SUMS SHA256SUMS.txt checksums.txt checksums-sha256.txt; do
+        if curl -fsSL -o "$checksums_file" "${base_url}/${name}" 2>/dev/null; then
+            echo "$checksums_file"
+            return 0
+        fi
+    done
+
+    # No checksums file found
+    return 1
+}
+
+# Verify a file's SHA256 checksum against a checksums file
+# Format supported: "<hash>  <filename>" or "<hash> *<filename>" (GNU coreutils)
+verify_checksum() {
+    local file="$1"
+    local checksums_file="$2"
+    local filename
+    filename=$(basename "$file")
+
+    # Extract expected checksum for this file
+    local expected
+    expected=$(awk -v f="$filename" '
+        {
+            # Handle both "hash  filename" and "hash *filename" formats
+            gsub(/^\*/, "", $2)
+            if ($2 == f) { print $1; exit }
+        }
+    ' "$checksums_file")
+
+    if [[ -z "$expected" ]]; then
+        echo "Warning: No checksum found for $filename in checksums file"
+        return 1
+    fi
+
+    # Compute actual checksum
+    local actual
+    if ! actual=$(get_sha256 "$file"); then
+        echo "Error: Failed to compute SHA256 for $file"
+        return 1
+    fi
+
+    # Compare (case-insensitive)
+    if [[ "${expected,,}" != "${actual,,}" ]]; then
+        echo "Error: Checksum mismatch for $filename"
+        echo "  Expected: $expected"
+        echo "  Actual:   $actual"
+        return 1
+    fi
+
+    echo "Verified: $filename"
+    return 0
+}
+
+# Download and verify a .deb file
+# Requires SHA256SUMS file to be present in the release for verification
+download_and_verify() {
+    local repo="$1"
+    local version="$2"
+    local deb_file="$3"
+    local dest="$4"
+
+    # Fetch checksums file first (required)
+    local checksums_file
+    if ! checksums_file=$(fetch_checksums_file "$repo" "$version"); then
+        echo "Error: No SHA256SUMS file found for $repo v$version"
+        echo "Releases must include a checksums file (SHA256SUMS, SHA256SUMS.txt, checksums.txt, or checksums-sha256.txt)"
+        exit 1
+    fi
+
+    local url="https://github.com/${repo}/releases/download/v${version}/${deb_file}"
+    echo "Downloading: $deb_file"
+    curl -fSL -o "$dest" "$url"
+
+    # Verify checksum
+    if ! verify_checksum "$dest" "$checksums_file"; then
+        echo "Error: Checksum verification failed for $deb_file"
+        rm -f "$dest"
+        exit 1
+    fi
+}
+
 # Read package list and architectures from config
 mapfile -t ALL_PACKAGES < <(yq -r '.packages[].name' "$CONFIG_FILE")
 mapfile -t ALL_ARCHS < <(yq -r '.packages[].architectures[]' "$CONFIG_FILE" | sort -u)
@@ -142,9 +239,7 @@ for package in "${UPDATE_PACKAGES[@]}"; do
 
     for arch in "${archs[@]}"; do
         deb_file="${package}_${version}_${arch}.deb"
-        url="https://github.com/${repo}/releases/download/v${version}/${deb_file}"
-        echo "Downloading: $deb_file"
-        curl -fSL -o "$ARTIFACTS_DIR/$deb_file" "$url"
+        download_and_verify "$repo" "$version" "$deb_file" "$ARTIFACTS_DIR/$deb_file"
     done
 done
 
@@ -185,9 +280,8 @@ for package in "${ALL_PACKAGES[@]}"; do
     for arch in "${archs[@]}"; do
         deb_file="$ARTIFACTS_DIR/${package}_${version}_${arch}.deb"
         if [[ ! -f "$deb_file" ]]; then
-            url="https://github.com/${repo}/releases/download/v${version}/${package}_${version}_${arch}.deb"
             echo "Downloading missing: ${package}_${version}_${arch}.deb"
-            curl -fSL -o "$deb_file" "$url"
+            download_and_verify "$repo" "$version" "${package}_${version}_${arch}.deb" "$deb_file"
         fi
     done
 done
