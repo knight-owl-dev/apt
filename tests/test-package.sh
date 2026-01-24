@@ -82,9 +82,12 @@ dpkg -s "$PACKAGE" | grep -E "^(Package|Version|Status):"
 
 if [ -n "$VERIFY_CMD" ]; then
     echo ""
-    echo "=== Running verify command ==="
+    echo "=== Running verify command (as non-root user) ==="
+    # Create non-root user to run verify command (more realistic)
+    useradd -m testuser
     read -ra verify_args <<< "$VERIFY_CMD"
-    "${verify_args[@]}"
+    # Run as testuser - catches permission issues and hardcoded root paths
+    runuser -u testuser -- "${verify_args[@]}"
 fi
 
 echo ""
