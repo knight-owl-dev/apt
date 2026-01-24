@@ -60,6 +60,8 @@ jobs:
         run: find dists -name ".gitkeep" -delete
 
       - name: Commit and push
+        env:
+          VERSIONS: ${{ steps.args.outputs.versions }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -67,9 +69,11 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            # Build commit message from updated packages
-            PACKAGES=$(yq -r '.packages[].name' packages.yml | tr '\n' ' ')
-            git commit -m "Update repository for: ${PACKAGES}"
+            if [ -n "$VERSIONS" ]; then
+              git commit -m "Update repository: ${VERSIONS}"
+            else
+              git commit -m "Update repository: all packages"
+            fi
             git push
           fi
 

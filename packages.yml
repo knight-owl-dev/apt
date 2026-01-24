@@ -2,7 +2,7 @@
 #
 # To add a new package:
 #   1. Add an entry here
-#   2. Create a Cloudflare Function at functions/pool/main/<first-letter>/<package-name>/[[path]].js
+#   2. Create a Cloudflare Function at functions/pool/main/<letter>/<package>/[[path]].js
 #
 # Fields:
 #   name          - Package name (required)

@@ -5,7 +5,7 @@ This guide explains how to add a new package to the `apt` repository.
 ## Prerequisites
 
 - The package must be hosted on GitHub Releases
-- Release assets must follow the naming convention: `{package}_{version}_{arch}.deb`
+- Release assets must follow the naming convention: `<package>_{version}_{arch}.deb`
 - Supported architectures: `amd64`, `arm64`
 
 ## Steps
@@ -42,7 +42,7 @@ Fields:
 
 ### 2. Create the Cloudflare Function
 
-Create a redirect function at `functions/pool/main/{first-letter}/{package}/[[path]].js`.
+Create a redirect function at `functions/pool/main/<letter>/<package>/[[path]].js`.
 
 For a package named `my-new-package`, create:
 

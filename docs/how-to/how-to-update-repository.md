@@ -15,7 +15,7 @@ GitHub Releases via Cloudflare Functions that redirect based on package version.
 ├─────────────────────────────────────────────────────────────────────────────┤
 │  Cloudflare Pages (static)          │  Cloudflare Functions (dynamic)       │
 │  ─────────────────────────────────  │  ──────────────────────────────────   │
-│  /PUBLIC.KEY                        │  /pool/main/{letter}/{package}/*.deb  │
+│  /PUBLIC.KEY                        │  /pool/main/<letter>/<package>/*.deb  │
 │  /dists/stable/Release              │    → parses version from filename     │
 │  /dists/stable/InRelease            │    → redirects to GitHub Releases     │
 │  /dists/stable/main/binary-*/       │                                       │
@@ -23,7 +23,7 @@ GitHub Releases via Cloudflare Functions that redirect based on package version.
                                              │
                                              ▼
                               GitHub Releases (binary storage)
-                              github.com/knight-owl-dev/{package}/releases
+                              github.com/knight-owl-dev/<package>/releases
 ```
 
 ## Configuration

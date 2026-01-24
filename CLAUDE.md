@@ -57,7 +57,7 @@ Repository updates are also automated via GitHub Actions (trigger from Actions U
 ### Adding a New Package
 
 1. Add entry to `packages.yml`
-2. Create Cloudflare Function at `functions/pool/main/<first-letter>/<package>/[[path]].js`
+2. Create Cloudflare Function at `functions/pool/main/<letter>/<package>/[[path]].js`
    (copy from existing keystone-cli function and update the repo path)
 
 ### Build Landing Page (handled by Cloudflare)

@@ -6,9 +6,12 @@ set -euo pipefail
 # Usage: ./scripts/update-repo.sh [package[:version] ...]
 #
 # Examples:
-#   ./scripts/update-repo.sh                      # All packages, latest versions
-#   ./scripts/update-repo.sh keystone-cli         # Only keystone-cli, latest version
-#   ./scripts/update-repo.sh keystone-cli:0.1.9   # Only keystone-cli, specific version
+#   ./scripts/update-repo.sh                      # Update all packages to latest versions
+#   ./scripts/update-repo.sh keystone-cli         # Update keystone-cli to latest, keep others unchanged
+#   ./scripts/update-repo.sh keystone-cli:0.1.9   # Update keystone-cli to 0.1.9, keep others unchanged
+#
+# Note: The repository always includes ALL packages from packages.yml. When specific
+# packages are provided, only those get version updates; others retain their current versions.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
@@ -40,18 +43,20 @@ fi
 mapfile -t ALL_PACKAGES < <(yq -r '.packages[].name' "$CONFIG_FILE")
 mapfile -t ALL_ARCHS < <(yq -r '.packages[].architectures[]' "$CONFIG_FILE" | sort -u)
 
-# Use requested packages or all packages
+# Determine which packages to process
+# Note: We always regenerate metadata for ALL packages to keep the repository consistent.
+# The REQUESTED_PACKAGES only controls which packages get fresh downloads (for version updates).
 if [[ ${#REQUESTED_PACKAGES[@]} -gt 0 ]]; then
-    PACKAGES=("${REQUESTED_PACKAGES[@]}")
+    UPDATE_PACKAGES=("${REQUESTED_PACKAGES[@]}")
 else
-    PACKAGES=("${ALL_PACKAGES[@]}")
+    UPDATE_PACKAGES=("${ALL_PACKAGES[@]}")
 fi
 
 mkdir -p "$ARTIFACTS_DIR"
 
-# Download packages
+# Download packages (only those being updated)
 echo "==> Downloading packages..."
-for package in "${PACKAGES[@]}"; do
+for package in "${UPDATE_PACKAGES[@]}"; do
     # Validate package exists in config
     if ! yq -e ".packages[] | select(.name == \"$package\")" "$CONFIG_FILE" &>/dev/null; then
         echo "Error: Package '$package' not found in packages.yml"
@@ -78,6 +83,38 @@ for package in "${PACKAGES[@]}"; do
     done
 done
 
+# For packages not being updated, fetch their current version from existing Packages file
+echo "==> Resolving versions for unchanged packages..."
+for package in "${ALL_PACKAGES[@]}"; do
+    if [[ ! -v "VERSIONS[$package]" ]]; then
+        # Try to get version from existing Packages file
+        existing_version=$(grep -A1 "^Package: $package$" "$REPO_ROOT/dists/stable/main/binary-amd64/Packages" 2>/dev/null | grep "^Version:" | cut -d' ' -f2 || true)
+        if [[ -n "$existing_version" ]]; then
+            VERSIONS["$package"]="$existing_version"
+            echo "Package $package: using existing version $existing_version"
+        else
+            echo "Error: No version found for $package (not in args, not in existing metadata)"
+            exit 1
+        fi
+    fi
+done
+
+# Download any missing packages (those with existing versions but no local .deb)
+for package in "${ALL_PACKAGES[@]}"; do
+    repo=$(yq -r ".packages[] | select(.name == \"$package\") | .repo" "$CONFIG_FILE")
+    mapfile -t archs < <(yq -r ".packages[] | select(.name == \"$package\") | .architectures[]" "$CONFIG_FILE")
+    version="${VERSIONS[$package]}"
+
+    for arch in "${archs[@]}"; do
+        deb_file="$ARTIFACTS_DIR/${package}_${version}_${arch}.deb"
+        if [[ ! -f "$deb_file" ]]; then
+            url="https://github.com/${repo}/releases/download/v${version}/${package}_${version}_${arch}.deb"
+            echo "Downloading missing: ${package}_${version}_${arch}.deb"
+            curl -fSL -o "$deb_file" "$url"
+        fi
+    done
+done
+
 # Generate Packages files for each architecture
 echo "==> Generating Packages files..."
 for arch in "${ALL_ARCHS[@]}"; do
@@ -88,7 +125,7 @@ for arch in "${ALL_ARCHS[@]}"; do
     # Clear existing Packages file
     > "$packages_file"
 
-    for package in "${PACKAGES[@]}"; do
+    for package in "${ALL_PACKAGES[@]}"; do
         # Check if this package supports this architecture
         if ! yq -e ".packages[] | select(.name == \"$package\") | .architectures[] | select(. == \"$arch\")" "$CONFIG_FILE" &>/dev/null; then
             continue
