@@ -124,9 +124,9 @@ jobs:
       - name: Import GPG key
         run: |
           echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
-          # Trust the key
-          KEY_ID=$(gpg --list-secret-keys --keyid-format=long | grep sec | head -1 | awk '{print $2}' | cut -d'/' -f2)
-          echo "${KEY_ID}:6:" | gpg --import-ownertrust
+          # Trust the key (requires full fingerprint)
+          FINGERPRINT=$(gpg --list-secret-keys --with-colons | grep fpr | head -1 | cut -d: -f10)
+          echo "${FINGERPRINT}:6:" | gpg --import-ownertrust
 
       - name: Sign Release file
         env:
