@@ -42,10 +42,11 @@ fi
 # Helper functions for cross-platform file stats and checksums
 get_file_size() {
     local file="$1"
-    if stat -c%s "$file" 2>/dev/null; then
-        return 0
-    elif stat -f%z "$file" 2>/dev/null; then
-        return 0
+    local result
+    if result=$(stat -c%s "$file" 2>/dev/null) && [[ -n "$result" ]]; then
+        echo "$result"
+    elif result=$(stat -f%z "$file" 2>/dev/null) && [[ -n "$result" ]]; then
+        echo "$result"
     else
         return 1
     fi
