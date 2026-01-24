@@ -117,12 +117,14 @@ The workflow resolves versions from (in order):
 
 The script (`scripts/update-repo.sh`):
 
-1. Reads package configuration from `packages.yml`
-2. Downloads `.deb` files from GitHub Releases (temporary, for metadata extraction)
-3. Extracts control metadata using `dpkg-deb -f`
-4. Computes checksums (MD5, SHA1, SHA256)
-5. Generates `Packages` and `Packages.gz` for each architecture
-6. Generates `Release` file with repository metadata
+1. Validates package names and versions (semver format required)
+2. Reads package configuration from `packages.yml`
+3. Downloads `SHA256SUMS` file from each GitHub Release
+4. Downloads `.deb` files and verifies checksums (fails if mismatch)
+5. Extracts control metadata using `dpkg-deb -f`
+6. Computes checksums (MD5, SHA1, SHA256)
+7. Generates `Packages` and `Packages.gz` for each architecture
+8. Generates `Release` file with repository metadata
 
 ### 3. Sign with GPG
 

@@ -85,3 +85,34 @@ Each package has a function that intercepts `.deb` download requests and returns
 - Key ID: `25F3 E04A E420 DC2A 0F18 1ADC 89B3 FD22 D208 5FDA`
 - Both clearsigned (`InRelease`) and detached (`Release.gpg`) signatures are generated
 - Public key available at `/PUBLIC.KEY`
+
+## Security
+
+### Input Validation
+
+All user inputs are validated at multiple layers:
+
+| Input               | Validation                                           | Location                            |
+| ------------------- | ---------------------------------------------------- | ----------------------------------- |
+| Package name        | `^[a-z0-9]([a-z0-9-]*[a-z0-9])?$`                    | `scripts/lib/validation.sh`         |
+| Version             | `^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$` (semver) | `scripts/lib/validation.sh`         |
+| Workflow input      | `^[A-Za-z0-9:._ -]*$`                                | `.github/workflows/update-repo.yml` |
+| Cloudflare redirect | Semver regex per package                             | `functions/pool/main/...`           |
+
+### Checksum Verification
+
+Downloaded `.deb` files are verified against SHA256 checksums:
+
+- Releases **must** include a `SHA256SUMS` file (or `SHA256SUMS.txt`, `checksums.txt`, `checksums-sha256.txt`)
+- Downloads fail if checksums file is missing or checksum doesn't match
+- Protects against MITM attacks and download corruption
+
+### Shared Validation Library
+
+Common validation functions are in `scripts/lib/validation.sh`:
+
+```bash
+source "$SCRIPT_DIR/lib/validation.sh"
+validate_package_name "my-package" || exit 1
+validate_version "1.0.0" || exit 1
+```
