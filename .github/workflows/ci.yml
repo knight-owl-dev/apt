@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install dependencies
+        run: |
+          sudo snap install yq
+          # gh CLI is pre-installed on GitHub runners
+
+      - name: Validate repository generation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: make validate
+
+      - name: Restore dists/
+        run: git restore dists/

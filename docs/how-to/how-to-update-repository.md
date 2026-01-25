@@ -15,7 +15,7 @@ GitHub Releases via Cloudflare Functions that redirect based on package version.
 ├─────────────────────────────────────────────────────────────────────────────┤
 │  Cloudflare Pages (static)          │  Cloudflare Functions (dynamic)       │
 │  ─────────────────────────────────  │  ──────────────────────────────────   │
-│  /PUBLIC.KEY                        │  /pool/main/k/keystone-cli/*.deb      │
+│  /PUBLIC.KEY                        │  /pool/main/<letter>/<package>/*.deb  │
 │  /dists/stable/Release              │    → parses version from filename     │
 │  /dists/stable/InRelease            │    → redirects to GitHub Releases     │
 │  /dists/stable/main/binary-*/       │                                       │
@@ -23,8 +23,46 @@ GitHub Releases via Cloudflare Functions that redirect based on package version.
                                              │
                                              ▼
                               GitHub Releases (binary storage)
-                              github.com/knight-owl-dev/keystone-cli/releases
+                              github.com/knight-owl-dev/<package>/releases
 ```
+
+## Configuration
+
+All packages are configured in `packages.yml`:
+
+```yaml
+packages:
+  - name: keystone-cli
+    repo: knight-owl-dev/keystone-cli
+    architectures:
+      - amd64
+      - arm64
+    verify: keystone-cli info
+```
+
+## Running Locally
+
+Generate unsigned metadata locally using the update script:
+
+```bash
+# All packages, latest versions
+./scripts/update-repo.sh
+
+# Single package, latest version
+./scripts/update-repo.sh keystone-cli
+
+# Single package, specific version
+./scripts/update-repo.sh keystone-cli:0.1.9
+
+# Multiple packages
+./scripts/update-repo.sh keystone-cli:0.1.9 other-package:1.0.0
+```
+
+Requirements: Bash 4+, `yq`, `gh` CLI, `dpkg-deb`, `curl`
+
+> **Note:** Local runs generate unsigned metadata for testing only. Do not commit these
+> files — the GitHub Actions workflow generates and signs the official metadata. Discard
+> local changes with `git restore dists/` before committing.
 
 ## Triggering the Workflow
 
@@ -32,57 +70,70 @@ GitHub Releases via Cloudflare Functions that redirect based on package version.
 
 1. Go to GitHub Actions → **Update Repository**
 2. Click **Run workflow**
-3. Optionally enter a version (e.g., `0.1.9`), or leave empty for latest
+3. Optionally specify packages:
+   - Empty → all packages, latest versions
+   - `keystone-cli` → single package, latest version
+   - `keystone-cli:0.1.9` → single package, specific version
 
-### Automated trigger (planned)
+### Automated trigger
 
-The keystone-cli release workflow will trigger this via `repository_dispatch` after publishing
-a new release.
+Package release workflows can trigger this via `repository_dispatch`. Add this step to your
+release workflow:
+
+```yaml
+- name: Trigger apt repository update
+  uses: peter-evans/repository-dispatch@v4
+  with:
+    token: ${{ secrets.APT_REPO_TOKEN }}
+    repository: knight-owl-dev/apt
+    event-type: release-published
+    client-payload: '{"versions": "my-package:${{ needs.release.outputs.version }}"}'
+```
+
+Required setup:
+
+1. Create a fine-grained PAT scoped to `knight-owl-dev/apt` with **Contents: Read and write**
+2. Add the PAT as a secret (e.g., `APT_REPO_TOKEN`) in your package's repository
+
+You can also trigger manually via the `gh` CLI:
+
+```bash
+gh api repos/knight-owl-dev/apt/dispatches \
+  -f event_type=release-published \
+  -f client_payload='{"versions": "keystone-cli:0.1.9"}'
+```
 
 ## Workflow Steps
 
-### 1. Determine version
+### 1. Determine versions
 
-The workflow resolves the version from (in order):
+The workflow resolves versions from (in order):
 
 1. Manual input (`workflow_dispatch`)
 2. Dispatch payload (`repository_dispatch`)
-3. Latest release from keystone-cli
+3. Latest release from each package's GitHub repo
 
-### 2. Download .deb packages
+### 2. Run update-repo.sh
 
-Downloads both architectures from GitHub Releases:
+The script (`scripts/update-repo.sh`):
 
-```plain
-https://github.com/knight-owl-dev/keystone-cli/releases/download/v{VERSION}/keystone-cli_{VERSION}_amd64.deb
-https://github.com/knight-owl-dev/keystone-cli/releases/download/v{VERSION}/keystone-cli_{VERSION}_arm64.deb
-```
+1. Validates package names and versions (semver format required)
+2. Reads package configuration from `packages.yml`
+3. Downloads `SHA256SUMS` file from each GitHub Release
+4. Downloads `.deb` files and verifies checksums (fails if mismatch)
+5. Extracts control metadata using `dpkg-deb -f`
+6. Computes checksums (MD5, SHA1, SHA256)
+7. Generates `Packages` and `Packages.gz` for each architecture
+8. Generates `Release` file with repository metadata
 
-These are temporary — used only to extract metadata.
+### 3. Sign with GPG
 
-### 3. Generate Packages files
-
-For each architecture, the workflow:
-
-1. Extracts control metadata from the `.deb` using `dpkg-deb -f`
-2. Computes checksums (MD5, SHA1, SHA256)
-3. Writes `Packages` and `Packages.gz` to `dists/stable/main/binary-{arch}/`
-
-### 4. Generate Release file
-
-Creates `dists/stable/Release` containing:
-
-- Repository metadata (Origin, Label, Suite, Codename, Architectures, Components)
-- Checksums of all `Packages` and `Packages.gz` files
-
-### 5. Sign with GPG
-
-Using the GPG key stored in repository secrets:
+The signing script (`scripts/sign-release.sh`) creates:
 
 - `InRelease` — clearsigned Release (inline signature)
 - `Release.gpg` — detached armored signature
 
-### 6. Commit and push
+### 4. Commit and push
 
 Commits all generated files to the `main` branch. Cloudflare Pages automatically redeploys
 on push.
@@ -119,7 +170,7 @@ apt-get install keystone-cli
 | Secret            | Purpose                         |
 |-------------------|---------------------------------|
 | `GPG_PRIVATE_KEY` | Armored private key for signing |
-| `GPG_PASSPHRASE`  | Passphrase for the GPG key.     |
+| `GPG_PASSPHRASE`  | Passphrase for the GPG key      |
 
 ## Troubleshooting
 
@@ -143,3 +194,17 @@ gh secret list --repo knight-owl-dev/apt
 
 Cloudflare Pages should auto-deploy on push. Check the deployment status in the
 Cloudflare dashboard.
+
+### yq not found
+
+Install `yq` on macOS:
+
+```bash
+brew install yq
+```
+
+Install `yq` on Linux:
+
+```bash
+sudo snap install yq
+```
