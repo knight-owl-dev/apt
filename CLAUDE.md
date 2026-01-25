@@ -21,6 +21,7 @@ scripts/sign-release.sh                  # Sign Release file with GPG
 scripts/lib/                             # Shared shell libraries (validation, checksums, require)
 dists/stable/main/binary-{amd64,arm64}/  # Apt package metadata (Packages, Packages.gz)
 dists/stable/                            # Release files (Release, InRelease, Release.gpg)
+functions/_middleware.js                 # Access control (blocks dev files from public)
 functions/pool/main/<letter>/<package>/  # Cloudflare Functions for binary redirects
 tests/                                   # Docker-based installation tests
 ```
@@ -62,9 +63,11 @@ npx markdown-to-html-cli --source README.md --output index.html
 
 ## Architecture Details
 
-### Cloudflare Functions (`functions/pool/main/<letter>/<package>/[[path]].js`)
+### Cloudflare Functions
 
-Each package has a function that intercepts `.deb` download requests and returns a 302 redirect to GitHub Releases. This allows apt clients to download binaries without storing them in this repository.
+**Middleware** (`functions/_middleware.js`): Blocks access to development files (scripts, tests, docs, config). Only allows apt-required routes: `/`, `/PUBLIC.KEY`, `/dists/*`, `/pool/*`.
+
+**Package redirects** (`functions/pool/main/<letter>/<package>/[[path]].js`): Each package has a function that intercepts `.deb` download requests and returns a 302 redirect to GitHub Releases. This allows apt clients to download binaries without storing them in this repository.
 
 ### Apt Metadata Flow
 
@@ -81,6 +84,17 @@ Each package has a function that intercepts `.deb` download requests and returns
 - Public key available at `/PUBLIC.KEY`
 
 ## Security
+
+### Access Control
+
+The middleware (`functions/_middleware.js`) restricts public access to apt-required paths only:
+
+| Allowed           | Blocked                                      |
+| ----------------- | -------------------------------------------- |
+| `/`, `/index.html`| `/scripts/*`, `/tests/*`, `/docs/*`          |
+| `/PUBLIC.KEY`     | `/.github/*`, `/CLAUDE.md`, `/packages.yml`  |
+| `/dists/*`        | `/Makefile`, `/_redirects`, etc.             |
+| `/pool/*`         |                                              |
 
 ### Input Validation
 
