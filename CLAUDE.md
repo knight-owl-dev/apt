@@ -49,6 +49,9 @@ Or use the scripts directly:
 
 Repository updates are also automated via GitHub Actions (trigger from Actions UI or via `repository_dispatch`).
 
+> **Note:** The `update-repo.yml` workflow pushes directly to `main` after generating signed
+> metadata. Branch protection rules intentionally allow direct pushes to support this automation.
+
 ### Adding a New Package
 
 1. Add entry to `packages.yml`

@@ -4,6 +4,9 @@ name: Update Repository
 # are treated as untrusted. All inputs are validated against a safe character
 # regex before use. The repository_dispatch event can be triggered by anyone
 # with write access to the repository.
+#
+# Note: This workflow pushes directly to main after generating signed metadata.
+# Branch protection rules intentionally allow direct pushes to support this.
 
 on:
   workflow_dispatch:
