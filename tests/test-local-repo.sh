@@ -41,6 +41,7 @@ set -- "${ARGS[@]+"${ARGS[@]}"}"
 # Load shared libraries
 source "$REPO_ROOT/scripts/lib/require.sh"
 source "$REPO_ROOT/scripts/lib/checksums.sh"
+source "$REPO_ROOT/scripts/lib/packages.sh"
 
 # Colors for output
 RED='\033[0;31m'
@@ -83,11 +84,7 @@ for arch in "${ARCHS[@]}"; do
     # Check required fields for each package entry
     while IFS= read -r pkg_name; do
         # Extract package block
-        block=$(awk -v pkg="$pkg_name" '
-            /^Package:/ { if ($2 == pkg) found=1; else found=0 }
-            found { print }
-            found && /^$/ { exit }
-        ' "$packages_file")
+        block=$(get_package_block "$pkg_name" "$packages_file")
 
         if [[ -z "$block" ]]; then
             fail "Package $pkg_name not found in binary-$arch/Packages"

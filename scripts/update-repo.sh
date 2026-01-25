@@ -22,6 +22,7 @@ ARTIFACTS_DIR="$REPO_ROOT/artifacts"
 source "$SCRIPT_DIR/lib/validation.sh"
 source "$SCRIPT_DIR/lib/checksums.sh"
 source "$SCRIPT_DIR/lib/require.sh"
+source "$SCRIPT_DIR/lib/packages.sh"
 
 # Parse command line arguments into associative array
 declare -A VERSIONS
@@ -207,11 +208,7 @@ for package in "${ALL_PACKAGES[@]}"; do
         for arch in "${ALL_ARCHS[@]}"; do
             pkgs_file="$REPO_ROOT/dists/stable/main/binary-$arch/Packages"
             if [[ -f "$pkgs_file" ]]; then
-                existing_version=$(awk -v pkg="$package" '
-                    /^Package:/ { current_pkg = $2 }
-                    /^$/ { current_pkg = "" }
-                    /^Version:/ && current_pkg == pkg { print $2; exit }
-                ' "$pkgs_file")
+                existing_version=$(get_package_version "$package" "$pkgs_file")
                 if [[ -n "$existing_version" ]]; then
                     break
                 fi

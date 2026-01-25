@@ -124,6 +124,7 @@ Common functions are in `scripts/lib/`:
 | `validation.sh` | Input validation (package names, versions)           |
 | `checksums.sh`  | Cross-platform checksums (MD5, SHA1, SHA256, size)   |
 | `require.sh`    | Dependency checks (bash4, yq, gh, docker, dpkg)      |
+| `packages.sh`   | Debian Packages file parsing (version, block)        |
 
 ```bash
 source "$SCRIPT_DIR/lib/validation.sh"
