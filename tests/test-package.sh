@@ -22,14 +22,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 CONFIG_FILE="$REPO_ROOT/packages.yml"
 
-# Load shared validation functions
+# Load shared libraries
 source "$REPO_ROOT/scripts/lib/validation.sh"
+source "$REPO_ROOT/scripts/lib/require.sh"
 
-# Check for yq
-if ! command -v yq &> /dev/null; then
-    echo "Error: yq is required. Install with: brew install yq (macOS) or snap install yq (Linux)"
-    exit 1
-fi
+# Check dependencies
+require_yq || exit 1
+require_docker || exit 1
 
 # Get package name (default to first package in config)
 PACKAGE="${1:-$(yq -r '.packages[0].name' "$CONFIG_FILE")}"

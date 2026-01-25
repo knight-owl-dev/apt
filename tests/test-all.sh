@@ -17,11 +17,12 @@ REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 CONFIG_FILE="$REPO_ROOT/packages.yml"
 IMAGE="${1:-debian:bookworm-slim}"
 
-# Check for yq
-if ! command -v yq &> /dev/null; then
-    echo "Error: yq is required. Install with: brew install yq (macOS) or snap install yq (Linux)"
-    exit 1
-fi
+# Load shared libraries
+source "$REPO_ROOT/scripts/lib/require.sh"
+
+# Check dependencies
+require_bash4 || exit 1
+require_yq || exit 1
 
 mapfile -t PACKAGES < <(yq -r '.packages[].name' "$CONFIG_FILE")
 

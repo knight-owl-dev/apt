@@ -22,6 +22,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 CONFIG_FILE="$REPO_ROOT/packages.yml"
 
+# Load shared libraries
+source "$REPO_ROOT/scripts/lib/require.sh"
+source "$REPO_ROOT/scripts/lib/checksums.sh"
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -35,11 +39,9 @@ info() { echo "  $1"; }
 
 FAILED=0
 
-# Check for yq
-if ! command -v yq &> /dev/null; then
-    echo "Error: yq is required. Install with: brew install yq (macOS) or snap install yq (Linux)"
-    exit 1
-fi
+# Check dependencies
+require_bash4 || exit 1
+require_yq || exit 1
 
 echo "=== Running update-repo.sh ==="
 KEEP_ARTIFACTS=1 "$REPO_ROOT/scripts/update-repo.sh" "$@"
@@ -97,11 +99,7 @@ for arch in "${ARCHS[@]}"; do
         deb_file="$REPO_ROOT/artifacts/$(basename "$filename")"
         if [[ -f "$deb_file" ]]; then
             expected_sha256=$(echo "$block" | grep "^SHA256:" | cut -d' ' -f2)
-            if command -v sha256sum &>/dev/null; then
-                actual_sha256=$(sha256sum "$deb_file" | cut -d' ' -f1)
-            else
-                actual_sha256=$(shasum -a 256 "$deb_file" | cut -d' ' -f1)
-            fi
+            actual_sha256=$(get_sha256 "$deb_file")
 
             if [[ "$expected_sha256" == "$actual_sha256" ]]; then
                 pass "Package $pkg_name ($arch): SHA256 checksum matches"
@@ -151,11 +149,7 @@ else
         expected=$(awk '/^SHA256:/{found=1; next} found && /^ /{print}' "$release_file" | grep "main/binary-$arch/Packages$" | grep -v ".gz" | awk '{print $1}')
 
         # Calculate actual SHA256
-        if command -v sha256sum &>/dev/null; then
-            actual=$(sha256sum "$packages_path" | cut -d' ' -f1)
-        else
-            actual=$(shasum -a 256 "$packages_path" | cut -d' ' -f1)
-        fi
+        actual=$(get_sha256 "$packages_path")
 
         if [[ "$expected" == "$actual" ]]; then
             pass "Release SHA256 for binary-$arch/Packages matches"

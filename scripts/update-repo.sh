@@ -18,8 +18,10 @@ REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 CONFIG_FILE="$REPO_ROOT/packages.yml"
 ARTIFACTS_DIR="$REPO_ROOT/artifacts"
 
-# Load shared validation functions
+# Load shared libraries
 source "$SCRIPT_DIR/lib/validation.sh"
+source "$SCRIPT_DIR/lib/checksums.sh"
+source "$SCRIPT_DIR/lib/require.sh"
 
 # Parse command line arguments into associative array
 declare -A VERSIONS
@@ -39,60 +41,11 @@ for arg in "$@"; do
     REQUESTED_PACKAGES+=("$package")
 done
 
-# Check for yq
-if ! command -v yq &> /dev/null; then
-    echo "Error: yq is required. Install with: brew install yq (macOS) or snap install yq (Linux)"
-    exit 1
-fi
-
-# Helper functions for cross-platform file stats and checksums
-get_file_size() {
-    local file="$1"
-    local result
-    if result=$(stat -c %s "$file" 2>/dev/null) && [[ "$result" =~ ^[0-9]+$ ]]; then
-        echo "$result"
-    elif result=$(stat -f %z "$file" 2>/dev/null) && [[ "$result" =~ ^[0-9]+$ ]]; then
-        echo "$result"
-    else
-        return 1
-    fi
-}
-
-get_md5() {
-    local file="$1"
-    local result
-    if result=$(md5sum "$file" 2>/dev/null | cut -d' ' -f1) && [[ -n "$result" ]]; then
-        echo "$result"
-    elif result=$(md5 -q "$file" 2>/dev/null); then
-        echo "$result"
-    else
-        return 1
-    fi
-}
-
-get_sha1() {
-    local file="$1"
-    local result
-    if result=$(sha1sum "$file" 2>/dev/null | cut -d' ' -f1) && [[ -n "$result" ]]; then
-        echo "$result"
-    elif result=$(shasum -a 1 "$file" 2>/dev/null | cut -d' ' -f1); then
-        echo "$result"
-    else
-        return 1
-    fi
-}
-
-get_sha256() {
-    local file="$1"
-    local result
-    if result=$(sha256sum "$file" 2>/dev/null | cut -d' ' -f1) && [[ -n "$result" ]]; then
-        echo "$result"
-    elif result=$(shasum -a 256 "$file" 2>/dev/null | cut -d' ' -f1); then
-        echo "$result"
-    else
-        return 1
-    fi
-}
+# Check dependencies
+require_bash4 || exit 1
+require_yq || exit 1
+require_gh || exit 1
+require_dpkg || exit 1
 
 # Fetch SHA256SUMS file from a GitHub release (if available)
 # Caches the result in ARTIFACTS_DIR to avoid re-downloading
