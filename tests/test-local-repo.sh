@@ -3,11 +3,15 @@
 # Test the update-repo.sh script locally and validate generated metadata.
 #
 # Usage:
-#   ./tests/test-local-repo.sh [package[:version] ...]
+#   ./tests/test-local-repo.sh [--clean] [package[:version] ...]
+#
+# Options:
+#   --clean    Prompt to restore dists/ after successful validation
 #
 # Examples:
 #   ./tests/test-local-repo.sh                      # Test with all packages (latest)
 #   ./tests/test-local-repo.sh keystone-cli:0.1.9   # Test with specific version
+#   ./tests/test-local-repo.sh --clean              # Test and prompt to restore dists/
 #
 # This script:
 #   1. Runs update-repo.sh to generate repository metadata
@@ -21,6 +25,18 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 CONFIG_FILE="$REPO_ROOT/packages.yml"
+
+# Parse --clean flag
+CLEAN_AFTER=0
+ARGS=()
+for arg in "$@"; do
+    if [[ "$arg" == "--clean" ]]; then
+        CLEAN_AFTER=1
+    else
+        ARGS+=("$arg")
+    fi
+done
+set -- "${ARGS[@]+"${ARGS[@]}"}"
 
 # Load shared libraries
 source "$REPO_ROOT/scripts/lib/require.sh"
@@ -197,8 +213,16 @@ if [[ $FAILED -eq 0 ]]; then
         echo "  - dists/stable/main/binary-$arch/Packages.gz"
     done
     echo ""
-    echo "Note: Run 'git restore dists/' to discard local changes,"
-    echo "      or 'git diff dists/' to review them."
+    if [[ $CLEAN_AFTER -eq 1 ]]; then
+        read -rp "Restore dists/ to discard changes? [y/N] " response
+        if [[ "$response" =~ ^[Yy]$ ]]; then
+            git -C "$REPO_ROOT" restore dists/
+            echo "Restored dists/"
+        fi
+    else
+        echo "Note: Run 'git restore dists/' to discard local changes,"
+        echo "      or 'git diff dists/' to review them."
+    fi
 else
     echo -e "${RED}Some validations failed!${NC}"
     exit 1

@@ -10,8 +10,12 @@ else
 	./tests/test-all.sh $(IMAGE)
 endif
 
-validate: ## Validate local repo generation (VERSIONS="pkg:1.0.0")
+validate: ## Validate local repo generation (VERSIONS="pkg:1.0.0" CLEAN=1)
+ifdef CLEAN
+	./tests/test-local-repo.sh --clean $(VERSIONS)
+else
 	./tests/test-local-repo.sh $(VERSIONS)
+endif
 
 update: ## Update repo metadata (VERSIONS="pkg:1.0.0")
 	./scripts/update-repo.sh $(VERSIONS)
