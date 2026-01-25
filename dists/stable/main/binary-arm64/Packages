@@ -1,16 +1,16 @@
 Package: keystone-cli
-Version: 0.1.9
+Version: 0.2.0
 Section: 
 Priority: optional
 Architecture: arm64
 License: MIT
 Maintainer: Knight Owl Dev
-Installed-Size: 81165
+Installed-Size: 81173
 Homepage: https://github.com/knight-owl-dev/keystone-cli
 Description: A command-line interface for Keystone
-Filename: pool/main/k/keystone-cli/keystone-cli_0.1.9_arm64.deb
-Size: 31959204
-MD5sum: ae3018b2fad0f7f1fb40af1ee3ff2af4
-SHA1: 5737ceca94410bfec26e00bd649bc743529b01cd
-SHA256: 93808c9b4b82d87baf26c6cb6133c08b6431efb108b83c374d0bad409f84ddce
+Filename: pool/main/k/keystone-cli/keystone-cli_0.2.0_arm64.deb
+Size: 31964054
+MD5sum: 3555deda576402107f1cff50b31c4840
+SHA1: c12fa14f62c7557a9a8f4ded8882c8fdfd95e15e
+SHA256: 2b62e868eb2b4b5467e3d295d7bdc0f20ffd282db4541f71e0d0dc93965309e3
 
