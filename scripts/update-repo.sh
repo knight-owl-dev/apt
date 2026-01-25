@@ -284,8 +284,9 @@ for arch in "${ALL_ARCHS[@]}"; do
             exit 1
         fi
 
-        # Determine pool path (first letter of package name)
+        # Determine pool path (first letter of package name, lowercase for safety)
         first_letter="${package:0:1}"
+        first_letter="${first_letter,,}"
 
         # Append to Packages file
         {

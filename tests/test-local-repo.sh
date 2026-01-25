@@ -36,7 +36,7 @@ for arg in "$@"; do
         ARGS+=("$arg")
     fi
 done
-set -- "${ARGS[@]+"${ARGS[@]}"}"
+set -- "${ARGS[@]}"
 
 # Load shared libraries
 source "$REPO_ROOT/scripts/lib/require.sh"
