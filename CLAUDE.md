@@ -18,6 +18,7 @@ This design minimizes storage since only apt metadata is stored here, while bina
 packages.yml                             # Package configuration (add new packages here)
 scripts/update-repo.sh                   # Generate Packages and Release files
 scripts/sign-release.sh                  # Sign Release file with GPG
+scripts/lib/                             # Shared shell libraries (validation, checksums, require)
 dists/stable/main/binary-{amd64,arm64}/  # Apt package metadata (Packages, Packages.gz)
 dists/stable/                            # Release files (Release, InRelease, Release.gpg)
 functions/pool/main/<letter>/<package>/  # Cloudflare Functions for binary redirects
@@ -107,12 +108,22 @@ Downloaded `.deb` files are verified against SHA256 checksums:
 - Downloads fail if checksums file is missing or checksum doesn't match
 - Protects against MITM attacks and download corruption
 
-### Shared Validation Library
+### Shared Libraries
 
-Common validation functions are in `scripts/lib/validation.sh`:
+Common functions are in `scripts/lib/`:
+
+| Library         | Purpose                                              |
+| --------------- | ---------------------------------------------------- |
+| `validation.sh` | Input validation (package names, versions)           |
+| `checksums.sh`  | Cross-platform checksums (MD5, SHA1, SHA256, size)   |
+| `require.sh`    | Dependency checks (bash4, yq, gh, docker, dpkg)      |
 
 ```bash
 source "$SCRIPT_DIR/lib/validation.sh"
+source "$SCRIPT_DIR/lib/checksums.sh"
+source "$SCRIPT_DIR/lib/require.sh"
+
+require_bash4 || exit 1
+require_yq || exit 1
 validate_package_name "my-package" || exit 1
-validate_version "1.0.0" || exit 1
 ```

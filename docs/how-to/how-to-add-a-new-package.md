@@ -89,7 +89,7 @@ export function onRequest(context) {
 Generate the repository metadata locally to verify the configuration:
 
 ```bash
-# Requires: yq, gh CLI, dpkg-deb
+# Requires: Bash 4+, yq, gh CLI, dpkg-deb
 ./scripts/update-repo.sh my-new-package:1.0.0
 ```
 

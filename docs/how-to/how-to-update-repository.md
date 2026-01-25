@@ -58,7 +58,7 @@ Generate unsigned metadata locally using the update script:
 ./scripts/update-repo.sh keystone-cli:0.1.9 other-package:1.0.0
 ```
 
-Requirements: `yq`, `gh` CLI, `dpkg-deb`, `curl`
+Requirements: Bash 4+, `yq`, `gh` CLI, `dpkg-deb`, `curl`
 
 > **Note:** Local runs generate unsigned metadata for testing only. Do not commit these
 > files — the GitHub Actions workflow generates and signs the official metadata. Discard
