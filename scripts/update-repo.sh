@@ -157,12 +157,19 @@ else
     UPDATE_PACKAGES=("${ALL_PACKAGES[@]}")
 fi
 
-# Ensure artifacts directory is not a symlink (prevent path traversal)
+# Ensure artifacts directory is safe (no symlink path traversal)
 if [[ -L "$ARTIFACTS_DIR" ]]; then
     echo "Error: $ARTIFACTS_DIR is a symlink, refusing to continue"
     exit 1
 fi
 mkdir -p "$ARTIFACTS_DIR"
+# Verify resolved path stays within repository
+REAL_ARTIFACTS="$(realpath "$ARTIFACTS_DIR")"
+REAL_REPO="$(realpath "$REPO_ROOT")"
+if [[ "$REAL_ARTIFACTS" != "$REAL_REPO/artifacts" ]]; then
+    echo "Error: Artifacts directory resolves outside repository: $REAL_ARTIFACTS"
+    exit 1
+fi
 
 # Download packages (only those being updated)
 echo "==> Downloading packages..."
