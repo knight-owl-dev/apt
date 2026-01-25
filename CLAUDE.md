@@ -102,7 +102,7 @@ All user inputs are validated at multiple layers:
 
 | Input               | Validation                                           | Location                            |
 | ------------------- | ---------------------------------------------------- | ----------------------------------- |
-| Package name        | `^[a-z0-9]([a-z0-9-]*[a-z0-9])?$`                    | `scripts/lib/validation.sh`         |
+| Package name        | `^[a-z0-9]+(-[a-z0-9]+)*$`                           | `scripts/lib/validation.sh`         |
 | Version             | `^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$` (semver) | `scripts/lib/validation.sh`         |
 | Workflow input      | `^[A-Za-z0-9:._ -]*$`                                | `.github/workflows/update-repo.yml` |
 | Cloudflare redirect | Semver regex per package                             | `functions/pool/main/...`           |

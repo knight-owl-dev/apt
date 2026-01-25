@@ -104,8 +104,8 @@ verify_checksum() {
         return 1
     fi
 
-    # Compare (case-insensitive)
-    if [[ "${expected,,}" != "${actual,,}" ]]; then
+    # Compare (exact match - SHA256 hashes are conventionally lowercase)
+    if [[ "$expected" != "$actual" ]]; then
         echo "Error: Checksum mismatch for $filename"
         echo "  Expected: $expected"
         echo "  Actual:   $actual"

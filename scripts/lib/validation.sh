@@ -5,7 +5,7 @@
 # Usage: validate_package_name "package-name"
 validate_package_name() {
     local name="$1"
-    if [[ ! "$name" =~ ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$ ]]; then
+    if [[ ! "$name" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]]; then
         echo "Error: Invalid package name '$name'. Must be lowercase alphanumeric with hyphens." >&2
         return 1
     fi
