@@ -209,6 +209,7 @@ for package in "${ALL_PACKAGES[@]}"; do
             if [[ -f "$pkgs_file" ]]; then
                 existing_version=$(awk -v pkg="$package" '
                     /^Package:/ { current_pkg = $2 }
+                    /^$/ { current_pkg = "" }
                     /^Version:/ && current_pkg == pkg { print $2; exit }
                 ' "$pkgs_file")
                 if [[ -n "$existing_version" ]]; then
