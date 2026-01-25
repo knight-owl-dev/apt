@@ -30,12 +30,11 @@ tests/                                   # Docker-based installation tests
 Run `make help` to see all available commands. Examples:
 
 ```bash
-make test                              # Test first package
-make test PKG=keystone-cli             # Test specific package
-make test-all                          # Test all packages
-make test-all IMAGE=ubuntu:24.04       # Test on specific image
-make test-local                        # Validate local repo generation
-make update                            # Update all packages to latest
+make test                                # Test all packages
+make test PKG=keystone-cli               # Test specific package
+make test IMAGE=ubuntu:24.04             # Test on specific image
+make validate                            # Validate local repo generation
+make update                              # Update all packages to latest
 make update VERSIONS=keystone-cli:0.1.9  # Update specific version
 ```
 
