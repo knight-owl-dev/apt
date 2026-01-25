@@ -27,29 +27,23 @@ tests/                                   # Docker-based installation tests
 
 ## Commands
 
-### Test Installation
+Run `make help` to see all available commands. Examples:
 
 ```bash
-# Test a package (defaults to first in packages.yml)
-./tests/test-package.sh
-
-# Test specific package on specific image
-./tests/test-package.sh keystone-cli ubuntu:24.04
-
-# Test all packages
-./tests/test-all.sh
+make test                              # Test first package
+make test PKG=keystone-cli             # Test specific package
+make test-all                          # Test all packages
+make test-all IMAGE=ubuntu:24.04       # Test on specific image
+make test-local                        # Validate local repo generation
+make update                            # Update all packages to latest
+make update VERSIONS=keystone-cli:0.1.9  # Update specific version
 ```
 
-### Update Repository
+Or use the scripts directly:
 
 ```bash
-# All packages, latest versions
-./scripts/update-repo.sh
-
-# Single package, latest version
-./scripts/update-repo.sh keystone-cli
-
-# Single package, specific version
+./tests/test-package.sh keystone-cli ubuntu:24.04
+./tests/test-all.sh
 ./scripts/update-repo.sh keystone-cli:0.1.9
 ```
 
