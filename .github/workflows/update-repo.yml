@@ -52,7 +52,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           VERSIONS: ${{ steps.args.outputs.versions }}
         run: |
-          # Validate VERSIONS contains only safe characters (letters, digits, colon, dot, dash, underscore, spaces)
+          # Validate VERSIONS contains only safe characters for shell word splitting.
+          # Spaces allowed to support multiple package specs (e.g., "pkg1:1.0.0 pkg2:2.0.0").
+          # Stricter per-package validation (name, version format) happens in update-repo.sh
+          # via scripts/lib/validation.sh.
           if [ -n "$VERSIONS" ]; then
             if ! printf '%s\n' "$VERSIONS" | grep -Eq '^[A-Za-z0-9:._ -]*$'; then
               echo "Error: Invalid characters in versions input: '$VERSIONS'" >&2
