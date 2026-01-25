@@ -92,9 +92,8 @@ if [ -n "$VERIFY_CMD" ]; then
     echo "=== Running verify command (as non-root user) ==="
     # Create non-root user to run verify command (more realistic)
     useradd -m testuser
-    read -ra verify_args <<< "$VERIFY_CMD"
-    # Run as testuser - catches permission issues and hardcoded root paths
-    runuser -u testuser -- "${verify_args[@]}"
+    # Run via bash -c to properly handle quoted arguments with spaces
+    runuser -u testuser -- bash -c "$VERIFY_CMD"
 fi
 
 echo ""
