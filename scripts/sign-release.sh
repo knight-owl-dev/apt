@@ -6,8 +6,11 @@ set -euo pipefail
 # Usage: ./scripts/sign-release.sh
 #
 # Environment variables:
-#   GPG_PASSPHRASE  - Passphrase for the GPG key (required for non-interactive use)
+#   GPG_PASSPHRASE  - Passphrase for the GPG key (optional if key has no passphrase)
 #   GPG_KEY_ID      - Key ID to use for signing (optional, auto-selects if only one key exists)
+#
+# Note: If GPG_PASSPHRASE is unset and the key requires a passphrase, GPG will fail.
+#       Passwordless keys are supported for local development.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
@@ -38,6 +41,11 @@ if [[ -z "$KEY_ID" ]]; then
 fi
 
 echo "Signing with key: $KEY_ID"
+
+# Warn if no passphrase provided (may be intentional for passwordless keys)
+if [[ -z "${GPG_PASSPHRASE:-}" ]]; then
+    echo "Warning: GPG_PASSPHRASE not set. Assuming passwordless key or interactive mode."
+fi
 
 # Create InRelease (clearsigned)
 gpg --default-key "$KEY_ID" \
