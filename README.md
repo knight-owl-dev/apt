@@ -4,7 +4,7 @@ Apt repository for Knight Owl packages, hosted on Cloudflare Pages with binaries
 
 ## Available Packages
 
-- **keystone-cli** — CLI tool for Keystone templates
+- [**keystone-cli**](https://github.com/knight-owl-dev/keystone-cli) — Command-line interface for Keystone
 
 ## Installation
 
