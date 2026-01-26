@@ -37,7 +37,7 @@ sudo apt-get install keystone-cli
 
 ## Architecture
 
-This repository stores only metadata. Binary packages (`.deb` files) are served directly from [GitHub Releases](https://github.com/knight-owl-dev/keystone-cli/releases) via Cloudflare Pages Functions that redirect requests based on the package version.
+This repository stores only metadata. Binary packages (`.deb` files) are served directly from GitHub Releases of each package via Cloudflare Pages Functions that redirect requests based on the package version.
 
 ## License
 
