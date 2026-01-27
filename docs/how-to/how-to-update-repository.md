@@ -180,7 +180,7 @@ The workflow uses a fine-grained Personal Access Token to create PRs. This is re
 
 **Create the token:**
 
-1. Go to https://github.com/settings/personal-access-tokens/new
+1. Go to <https://github.com/settings/personal-access-tokens/new>
 2. Name: `apt-pr-token`
 3. Expiration: 90 days (or your preference)
 4. Repository access: Select `knight-owl-dev/apt` only
@@ -198,7 +198,7 @@ gh secret set PR_TOKEN --repo knight-owl-dev/apt
 
 **Regenerate an expired token:**
 
-1. Go to https://github.com/settings/personal-access-tokens/active
+1. Go to <https://github.com/settings/personal-access-tokens/active>
 2. Click on the token → **Regenerate token**
 3. Update the secret:
 
