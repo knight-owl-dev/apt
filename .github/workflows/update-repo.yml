@@ -23,6 +23,7 @@ jobs:
   update:
     runs-on: ubuntu-latest
     permissions:
+      actions: write
       contents: write
       pull-requests: write
 
@@ -121,5 +122,8 @@ jobs:
             echo "Ensure auto-merge is enabled in repository settings and branch protection allows it."
             exit 1
           fi
+
+          # Trigger CI workflow on the PR branch (GITHUB_TOKEN doesn't trigger workflows automatically)
+          gh workflow run ci.yml --ref "$BRANCH"
 
           echo "Created PR: $PR_URL"
