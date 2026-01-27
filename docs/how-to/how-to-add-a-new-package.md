@@ -125,7 +125,7 @@ The workflow will:
 1. Download `.deb` files for all packages
 2. Generate `Packages` and `Release` files
 3. Sign with GPG
-4. Commit and push to `main`
+4. Create a PR and auto-merge to `main`
 
 ### 6. Verify installation
 
