@@ -23,9 +23,10 @@ jobs:
   update:
     runs-on: ubuntu-latest
     permissions:
-      actions: write
       contents: write
       pull-requests: write
+    outputs:
+      branch: ${{ steps.create-pr.outputs.branch }}
 
     steps:
       - name: Checkout apt repository
@@ -87,6 +88,7 @@ jobs:
         run: find dists -name ".gitkeep" -delete
 
       - name: Create PR with changes
+        id: create-pr
         env:
           GH_TOKEN: ${{ github.token }}
           VERSIONS: ${{ steps.args.outputs.versions }}
@@ -123,7 +125,13 @@ jobs:
             exit 1
           fi
 
-          # Trigger CI workflow on the PR branch (GITHUB_TOKEN doesn't trigger workflows automatically)
-          gh workflow run ci.yml --ref "$BRANCH"
-
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
           echo "Created PR: $PR_URL"
+
+  # Run validation on PR branch. Called as reusable workflow to avoid duplication.
+  validate:
+    needs: update
+    if: needs.update.outputs.branch != ''
+    uses: ./.github/workflows/ci.yml
+    with:
+      ref: ${{ needs.update.outputs.branch }}
