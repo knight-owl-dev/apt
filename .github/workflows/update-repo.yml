@@ -5,9 +5,6 @@ name: Update Repository
 # regex before use. The repository_dispatch event can be triggered by anyone
 # with write access to the repository.
 #
-# Note: This workflow pushes directly to main after generating signed metadata.
-# Branch protection rules intentionally allow direct pushes to support this.
-
 on:
   workflow_dispatch:
     inputs:
@@ -18,11 +15,16 @@ on:
   repository_dispatch:
     types: [release-published]
 
+concurrency:
+  group: update-repo
+  cancel-in-progress: false
+
 jobs:
   update:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
 
     steps:
       - name: Checkout apt repository
@@ -83,20 +85,37 @@ jobs:
       - name: Remove .gitkeep files
         run: find dists -name ".gitkeep" -delete
 
-      - name: Commit and push
+      - name: Create PR with changes
         env:
+          GH_TOKEN: ${{ github.token }}
           VERSIONS: ${{ steps.args.outputs.versions }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add dists/
+
           if git diff --staged --quiet; then
             echo "No changes to commit"
-          else
-            if [ -n "$VERSIONS" ]; then
-              git commit -m "Update repository: ${VERSIONS}"
-            else
-              git commit -m "Update repository: all packages"
-            fi
-            git push
+            exit 0
           fi
+
+          # Create branch with timestamp
+          BRANCH="update-repo/$(date -u +%Y-%m-%d-%H%M%S)"
+          git checkout -b "$BRANCH"
+
+          # Commit changes
+          if [ -n "$VERSIONS" ]; then
+            TITLE="Update repository: ${VERSIONS}"
+          else
+            TITLE="Update repository: all packages"
+          fi
+          git commit -m "$TITLE"
+
+          # Push and create PR
+          git push -u origin "$BRANCH"
+          PR_URL=$(gh pr create --title "$TITLE" --body "Automated apt repository metadata update.")
+
+          # Enable auto-merge (squash)
+          gh pr merge --auto --squash "$PR_URL"
+
+          echo "Created PR: $PR_URL"

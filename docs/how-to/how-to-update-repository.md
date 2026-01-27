@@ -133,10 +133,10 @@ The signing script (`scripts/sign-release.sh`) creates:
 - `InRelease` — clearsigned Release (inline signature)
 - `Release.gpg` — detached armored signature
 
-### 4. Commit and push
+### 4. Create PR and auto-merge
 
-Commits all generated files to the `main` branch. Cloudflare Pages automatically redeploys
-on push.
+Creates a PR with the generated files and enables auto-merge (squash). After CI passes,
+the PR is automatically merged to `main`. Cloudflare Pages automatically redeploys on merge.
 
 ## Generated Files
 

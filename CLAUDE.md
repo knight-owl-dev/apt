@@ -49,8 +49,8 @@ Or use the scripts directly:
 
 Repository updates are also automated via GitHub Actions (trigger from Actions UI or via `repository_dispatch`).
 
-> **Note:** The `update-repo.yml` workflow pushes directly to `main` after generating signed
-> metadata. Branch protection rules intentionally allow direct pushes to support this automation.
+> **Note:** The `update-repo.yml` workflow creates PRs with auto-merge enabled. PRs are
+> automatically squash-merged after CI passes.
 
 ### Adding a New Package
 
