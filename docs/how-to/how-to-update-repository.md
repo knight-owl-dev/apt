@@ -167,10 +167,44 @@ apt-get install keystone-cli
 
 ## Secrets Required
 
-| Secret            | Purpose                         |
-|-------------------|---------------------------------|
-| `GPG_PRIVATE_KEY` | Armored private key for signing |
-| `GPG_PASSPHRASE`  | Passphrase for the GPG key      |
+| Secret            | Purpose                                      |
+|-------------------|----------------------------------------------|
+| `GPG_PRIVATE_KEY` | Armored private key for signing              |
+| `GPG_PASSPHRASE`  | Passphrase for the GPG key                   |
+| `PR_TOKEN`        | Fine-grained PAT for creating PRs (see below)|
+
+### PR_TOKEN Setup
+
+The workflow uses a fine-grained Personal Access Token to create PRs. This is required because
+`GITHUB_TOKEN` doesn't trigger other workflows, so CI wouldn't run on auto-created PRs.
+
+**Create the token:**
+
+1. Go to https://github.com/settings/personal-access-tokens/new
+2. Name: `apt-pr-token`
+3. Expiration: 90 days (or your preference)
+4. Repository access: Select `knight-owl-dev/apt` only
+5. Permissions:
+   - **Contents**: Read and write
+   - **Pull requests**: Read and write
+6. Generate token
+
+**Set the secret:**
+
+```bash
+gh secret set PR_TOKEN --repo knight-owl-dev/apt
+# Paste the token when prompted
+```
+
+**Regenerate an expired token:**
+
+1. Go to https://github.com/settings/personal-access-tokens/active
+2. Click on the token → **Regenerate token**
+3. Update the secret:
+
+```bash
+gh secret set PR_TOKEN --repo knight-owl-dev/apt
+```
 
 ## Troubleshooting
 
