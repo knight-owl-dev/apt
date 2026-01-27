@@ -99,8 +99,8 @@ jobs:
             exit 0
           fi
 
-          # Create branch with timestamp
-          BRANCH="update-repo/$(date -u +%Y-%m-%d-%H%M%S)"
+          # Create branch with timestamp and unique run ID to avoid collisions
+          BRANCH="update-repo/${GITHUB_RUN_ID}-$(date -u +%Y-%m-%d-%H%M%S)"
           git checkout -b "$BRANCH"
 
           # Commit changes
@@ -116,6 +116,10 @@ jobs:
           PR_URL=$(gh pr create --title "$TITLE" --body "Automated apt repository metadata update.")
 
           # Enable auto-merge (squash)
-          gh pr merge --auto --squash "$PR_URL"
+          if ! gh pr merge --auto --squash "$PR_URL"; then
+            echo "Failed to enable auto-merge for PR: $PR_URL"
+            echo "Ensure auto-merge is enabled in repository settings and branch protection allows it."
+            exit 1
+          fi
 
           echo "Created PR: $PR_URL"
