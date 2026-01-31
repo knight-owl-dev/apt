@@ -99,8 +99,8 @@ jobs:
             exit 0
           fi
 
-          # Create branch with timestamp and unique run ID to avoid collisions
-          BRANCH="update-repo/${GITHUB_RUN_ID}-$(date -u +%Y-%m-%d-%H%M%S)"
+          # Create branch with unique run ID
+          BRANCH="update-repo/${GITHUB_RUN_ID}"
           git checkout -b "$BRANCH"
 
           # Commit changes
