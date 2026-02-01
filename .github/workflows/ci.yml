@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  shfmt:
+  lint:
     runs-on: ubuntu-latest
 
     steps:
@@ -18,8 +18,11 @@ jobs:
       - name: Setup shfmt
         uses: mfinelli/setup-shfmt@v4
 
-      - name: Check formatting
+      - name: Check formatting (shfmt)
         run: shfmt -d -i 2 -ci -bn -sr scripts/ tests/
+
+      - name: Lint (shellcheck)
+        run: shellcheck --severity=warning scripts/*.sh scripts/lib/*.sh tests/*.sh
 
   validate:
     runs-on: ubuntu-latest

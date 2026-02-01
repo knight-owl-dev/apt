@@ -7,11 +7,11 @@
 get_package_version() {
   local pkg="$1"
   local packages_file="$2"
-  awk -v pkg="$pkg" '
+  awk -v pkg="${pkg}" '
         /^Package:/ { current_pkg = $2 }
         /^$/ { current_pkg = "" }
         /^Version:/ && current_pkg == pkg { print $2; exit }
-    ' "$packages_file"
+    ' "${packages_file}"
 }
 
 # Get entire stanza for a package from a Packages file
@@ -20,9 +20,9 @@ get_package_version() {
 get_package_block() {
   local pkg="$1"
   local packages_file="$2"
-  awk -v pkg="$pkg" '
+  awk -v pkg="${pkg}" '
         /^Package:/ { if ($2 == pkg) found=1; else found=0 }
         found { print }
         found && /^$/ { exit }
-    ' "$packages_file"
+    ' "${packages_file}"
 }

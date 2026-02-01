@@ -13,20 +13,20 @@ set -euo pipefail
 #       Passwordless keys are supported for local development.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(dirname "$SCRIPT_DIR")"
-RELEASE_DIR="$REPO_ROOT/dists/stable"
+REPO_ROOT="$(dirname "${SCRIPT_DIR}")"
+RELEASE_DIR="${REPO_ROOT}/dists/stable"
 
-cd "$RELEASE_DIR"
+cd "${RELEASE_DIR}"
 
 if [[ ! -f Release ]]; then
-  echo "Error: Release file not found at $RELEASE_DIR/Release"
+  echo "Error: Release file not found at ${RELEASE_DIR}/Release"
   exit 1
 fi
 
 # Determine which GPG key to use
 KEY_ID="${GPG_KEY_ID:-}"
 
-if [[ -z "$KEY_ID" ]]; then
+if [[ -z "${KEY_ID}" ]]; then
   # Auto-select only if exactly one secret key exists
   mapfile -t KEY_IDS < <(gpg --list-secret-keys --keyid-format=long --with-colons 2> /dev/null | awk -F: '$1=="sec"{print $5}')
 
@@ -40,7 +40,7 @@ if [[ -z "$KEY_ID" ]]; then
   KEY_ID="${KEY_IDS[0]}"
 fi
 
-echo "Signing with key: $KEY_ID"
+echo "Signing with key: ${KEY_ID}"
 
 # Warn if no passphrase provided (may be intentional for passwordless keys)
 if [[ -z "${GPG_PASSPHRASE:-}" ]]; then
@@ -48,7 +48,7 @@ if [[ -z "${GPG_PASSPHRASE:-}" ]]; then
 fi
 
 # Create InRelease (clearsigned)
-gpg --default-key "$KEY_ID" \
+gpg --default-key "${KEY_ID}" \
   --batch --yes \
   --pinentry-mode loopback \
   --passphrase "${GPG_PASSPHRASE:-}" \
@@ -57,7 +57,7 @@ gpg --default-key "$KEY_ID" \
   Release
 
 # Create Release.gpg (detached signature)
-gpg --default-key "$KEY_ID" \
+gpg --default-key "${KEY_ID}" \
   --batch --yes \
   --pinentry-mode loopback \
   --passphrase "${GPG_PASSPHRASE:-}" \
