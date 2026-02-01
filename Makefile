@@ -1,4 +1,4 @@
-.PHONY: help test validate update sign lint lint-fix clean
+.PHONY: help test validate update sign lint lint-sh lint-js lint-fix lint-sh-fix lint-js-fix clean
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-12s %s\n", $$1, $$2}'
@@ -23,13 +23,23 @@ update: ## Update repo metadata (VERSIONS="pkg:1.0.0")
 sign: ## Sign Release file with GPG
 	./scripts/sign-release.sh
 
-lint: ## Check shell scripts (formatting + linting)
-	shfmt -d -i 2 -ci -bn -sr scripts/ tests/
-	shellcheck --severity=warning scripts/*.sh scripts/lib/*.sh tests/*.sh
+lint: lint-sh lint-js ## Check all (shell + JS)
 	@echo "All checks passed"
 
-lint-fix: ## Fix shell script formatting
+lint-sh: ## Check shell scripts (formatting + linting)
+	shfmt -d -i 2 -ci -bn -sr scripts/ tests/
+	shellcheck --severity=warning scripts/*.sh scripts/lib/*.sh tests/*.sh
+
+lint-js: ## Check JavaScript (biome)
+	npx biome check functions/
+
+lint-fix: lint-sh-fix lint-js-fix ## Fix all formatting
+
+lint-sh-fix: ## Fix shell script formatting
 	shfmt -w -i 2 -ci -bn -sr scripts/ tests/
+
+lint-js-fix: ## Fix JavaScript formatting
+	npx biome check --write functions/
 
 clean: ## Remove generated artifacts
 	rm -rf artifacts/

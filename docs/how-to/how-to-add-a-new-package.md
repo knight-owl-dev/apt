@@ -70,7 +70,9 @@ export function onRequest(context) {
 
   // Update the regex to match your package name
   // Version must be semver: X.Y.Z or X.Y.Z-prerelease (e.g., 1.0.0, 2.1.0-beta.1)
-  const match = filename.match(/^my-new-package_(\d+\.\d+\.\d+(?:-[a-zA-Z0-9.]+)?)_(amd64|arm64)\.deb$/);
+  const match = filename.match(
+    /^my-new-package_(\d+\.\d+\.\d+(?:-[a-zA-Z0-9.]+)?)_(amd64|arm64)\.deb$/,
+  );
 
   if (!match) {
     return new Response('Not found', { status: 404 });
