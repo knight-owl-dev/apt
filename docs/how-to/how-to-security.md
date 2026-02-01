@@ -86,10 +86,10 @@ set -euo pipefail
 
 Scripts using strict mode:
 
-- `scripts/update-repo.sh`
-- `scripts/sign-release.sh`
 - `scripts/create-update-pr.sh`
 - `scripts/lib/*.sh`
+- `scripts/sign-release.sh`
+- `scripts/update-repo.sh`
 - `tests/*.sh`
 
 ### Input Validation
