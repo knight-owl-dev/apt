@@ -1,9 +1,9 @@
 name: Update Repository
 
 # Security note: Both workflow_dispatch inputs and repository_dispatch payloads
-# are treated as untrusted. All inputs are validated against a safe character
-# regex before use. The repository_dispatch event can be triggered by anyone
-# with write access to the repository.
+# are treated as untrusted. All inputs are validated by scripts/update-repo.sh
+# via scripts/lib/validation.sh. The repository_dispatch event can be triggered
+# by anyone with write access to the repository.
 #
 on:
   workflow_dispatch:
@@ -40,15 +40,15 @@ jobs:
           INPUT_VERSIONS: ${{ inputs.versions }}
           PAYLOAD_VERSIONS: ${{ github.event.client_payload.versions }}
         run: |
-          if [ -n "$INPUT_VERSIONS" ]; then
+          if [[ -n "${INPUT_VERSIONS}" ]]; then
             # Use workflow_dispatch input
-            echo "versions=$INPUT_VERSIONS" >> "$GITHUB_OUTPUT"
-          elif [ -n "$PAYLOAD_VERSIONS" ]; then
+            echo "versions=${INPUT_VERSIONS}" >> "${GITHUB_OUTPUT}"
+          elif [[ -n "${PAYLOAD_VERSIONS}" ]]; then
             # Use repository_dispatch payload
-            echo "versions=$PAYLOAD_VERSIONS" >> "$GITHUB_OUTPUT"
+            echo "versions=${PAYLOAD_VERSIONS}" >> "${GITHUB_OUTPUT}"
           else
             # Fetch latest for all packages
-            echo "versions=" >> "$GITHUB_OUTPUT"
+            echo "versions=" >> "${GITHUB_OUTPUT}"
           fi
 
       - name: Update repository
@@ -56,19 +56,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           VERSIONS: ${{ steps.args.outputs.versions }}
         run: |
-          # Validate VERSIONS contains only safe characters for shell word splitting.
-          # Spaces allowed to support multiple package specs (e.g., "pkg1:1.0.0 pkg2:2.0.0").
-          # Stricter per-package validation (name, version format) happens in update-repo.sh
-          # via scripts/lib/validation.sh.
-          if [ -n "$VERSIONS" ]; then
-            if ! printf '%s\n' "$VERSIONS" | grep -Eq '^[A-Za-z0-9:._ -]*$'; then
-              echo "Error: Invalid characters in versions input: '$VERSIONS'" >&2
-              echo "Allowed: letters, digits, colon, dot, dash, underscore, space" >&2
-              exit 1
-            fi
-          fi
-          # shellcheck disable=SC2086  # Intentionally unquoted to pass space-separated package specs as individual args
-          ./scripts/update-repo.sh $VERSIONS
+          # shellcheck disable=SC2086 -- $VERSIONS must word-split to pass multiple package specs as separate args
+          ./scripts/update-repo.sh ${VERSIONS}
 
       - name: Import GPG key
         run: |
@@ -86,41 +75,8 @@ jobs:
 
       - name: Create PR with changes
         env:
-          # Use PAT to trigger CI workflow on PR (GITHUB_TOKEN doesn't trigger workflows)
           GH_TOKEN: ${{ secrets.PR_TOKEN }}
           VERSIONS: ${{ steps.args.outputs.versions }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add dists/
-
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
-            exit 0
-          fi
-
-          # Create branch with unique run ID
-          BRANCH="update-repo/${GITHUB_RUN_ID}"
-          git checkout -b "$BRANCH"
-
-          # Commit changes
-          if [ -n "$VERSIONS" ]; then
-            TITLE="Update repository: ${VERSIONS}"
-          else
-            TITLE="Update repository: all packages"
-          fi
-          git commit -m "$TITLE"
-
-          # Configure git to use PAT for push (triggers CI workflow via pull_request event)
-          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
-          git push -u origin "$BRANCH"
-          PR_URL=$(gh pr create --title "$TITLE" --body "Automated apt repository metadata update.")
-
-          # Enable auto-merge (squash)
-          if ! gh pr merge --auto --squash "$PR_URL"; then
-            echo "Failed to enable auto-merge for PR: $PR_URL"
-            echo "Ensure auto-merge is enabled in repository settings and branch protection allows it."
-            exit 1
-          fi
-
-          echo "Created PR: $PR_URL"
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: ./scripts/create-update-pr.sh

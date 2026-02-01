@@ -92,6 +92,15 @@ make lint-fix    # Auto-fix formatting
 | `require-double-brackets`    | Enforce `[[` over `[` for bash             |
 | `deprecate-which`            | Use `command -v` instead of `which`        |
 
+### Workflow Script Style
+
+Inline shell scripts in GitHub Actions workflows can't be auto-linted. Follow these guidelines:
+
+- Use `${VAR}` for variable references (consistent with shellcheck `require-variable-braces`)
+- Use `[[ ]]` for tests (consistent with shellcheck `require-double-brackets`)
+- Keep inline scripts minimal - extract complex logic (>10 lines) to scripts in `scripts/`
+- When disabling shellcheck rules, include a reason: `# shellcheck disable=SC2086 -- reason here`
+
 ### Build Landing Page (handled by Cloudflare)
 
 ```bash
@@ -137,12 +146,11 @@ The middleware (`functions/_middleware.js`) restricts public access to apt-requi
 
 All user inputs are validated at multiple layers:
 
-| Input               | Validation                                           | Location                            |
-| ------------------- | ---------------------------------------------------- | ----------------------------------- |
-| Package name        | `^[a-z0-9]+(-[a-z0-9]+)*$`                           | `scripts/lib/validation.sh`         |
-| Version             | `^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$` (semver) | `scripts/lib/validation.sh`         |
-| Workflow input      | `^[A-Za-z0-9:._ -]*$`                                | `.github/workflows/update-repo.yml` |
-| Cloudflare redirect | Semver regex per package                             | `functions/pool/main/...`           |
+| Input               | Validation                                           | Location                    |
+| ------------------- | ---------------------------------------------------- | --------------------------- |
+| Package name        | `^[a-z0-9]+(-[a-z0-9]+)*$`                           | `scripts/lib/validation.sh` |
+| Version             | `^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$` (semver) | `scripts/lib/validation.sh` |
+| Cloudflare redirect | Semver regex per package                             | `functions/pool/main/...`   |
 
 ### Checksum Verification
 
