@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+set -euo pipefail
+
 #
 # Test all packages from packages.yml
 #
@@ -9,8 +11,6 @@
 #   ./tests/test-all.sh                    # Test all packages on debian:bookworm-slim
 #   ./tests/test-all.sh ubuntu:24.04       # Test all packages on Ubuntu 24.04
 #
-
-set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "${SCRIPT_DIR}")"
