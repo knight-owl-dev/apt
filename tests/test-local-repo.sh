@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+set -euo pipefail
+
 #
 # Test the update-repo.sh script locally and validate generated metadata.
 #
@@ -19,8 +21,6 @@
 #   3. Validates Release file has correct checksums
 #   4. Validates .deb files match their checksums
 #
-
-set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "${SCRIPT_DIR}")"
