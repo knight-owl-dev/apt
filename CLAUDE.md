@@ -60,6 +60,25 @@ Repository updates are also automated via GitHub Actions (trigger from Actions U
 
 See [docs/how-to/how-to-add-a-new-package.md](docs/how-to/how-to-add-a-new-package.md) for detailed steps.
 
+### Shell Script Formatting
+
+Shell scripts are formatted with [shfmt](https://github.com/mvdan/sh). CI enforces formatting.
+
+```bash
+# Check formatting (reports diff, exits non-zero if unformatted)
+shfmt -d -i 2 -ci -bn -sr scripts/ tests/
+
+# Auto-format all scripts
+shfmt -w -i 2 -ci -bn -sr scripts/ tests/
+```
+
+| Flag | Meaning |
+| ---- | ------- |
+| `-i 2` | 2-space indentation |
+| `-ci` | Indent case labels |
+| `-bn` | Binary ops (`&&`, `\|`) start a line |
+| `-sr` | Redirect operators followed by space |
+
 ### Build Landing Page (handled by Cloudflare)
 
 ```bash

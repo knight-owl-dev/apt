@@ -8,6 +8,19 @@ on:
   workflow_dispatch:
 
 jobs:
+  shfmt:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup shfmt
+        uses: mfinelli/setup-shfmt@v4
+
+      - name: Check formatting
+        run: shfmt -d -i 2 -ci -bn -sr scripts/ tests/
+
   validate:
     runs-on: ubuntu-latest
 

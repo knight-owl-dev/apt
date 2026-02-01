@@ -36,15 +36,15 @@ IMAGE="${2:-debian:bookworm-slim}"
 
 # Validate package name format (if user-provided)
 if [[ -n "${1:-}" ]]; then
-    validate_package_name "$PACKAGE" || exit 1
+  validate_package_name "$PACKAGE" || exit 1
 fi
 
 # Validate package exists in config
-if ! yq -e ".packages[] | select(.name == \"$PACKAGE\")" "$CONFIG_FILE" &>/dev/null; then
-    echo "Error: Package '$PACKAGE' not found in packages.yml"
-    echo "Available packages:"
-    yq -r '.packages[].name' "$CONFIG_FILE" | sed 's/^/  - /'
-    exit 1
+if ! yq -e ".packages[] | select(.name == \"$PACKAGE\")" "$CONFIG_FILE" &> /dev/null; then
+  echo "Error: Package '$PACKAGE' not found in packages.yml"
+  echo "Available packages:"
+  yq -r '.packages[].name' "$CONFIG_FILE" | sed 's/^/  - /'
+  exit 1
 fi
 
 # Get verify command (optional)
@@ -56,9 +56,9 @@ echo "Verify command: ${VERIFY_CMD:-<none>}"
 echo "==========================================="
 
 docker run --rm \
-    -e "PACKAGE=$PACKAGE" \
-    -e "VERIFY_CMD=$VERIFY_CMD" \
-    "$IMAGE" bash -c '
+  -e "PACKAGE=$PACKAGE" \
+  -e "VERIFY_CMD=$VERIFY_CMD" \
+  "$IMAGE" bash -c '
 set -e
 
 echo "=== Adding Knight Owl apt repository ==="
