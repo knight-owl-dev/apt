@@ -15,14 +15,16 @@ This design minimizes storage since only apt metadata is stored here, while bina
 ## Repository Structure
 
 ```plain
-packages.yml                             # Package configuration (add new packages here)
-scripts/update-repo.sh                   # Generate Packages and Release files
-scripts/sign-release.sh                  # Sign Release file with GPG
-scripts/lib/                             # Shared shell libraries (validation, checksums, require)
-dists/stable/main/binary-{amd64,arm64}/  # Apt package metadata (Packages, Packages.gz)
 dists/stable/                            # Release files (Release, InRelease, Release.gpg)
+dists/stable/main/binary-{amd64,arm64}/  # Apt package metadata (Packages, Packages.gz)
+docs/how-to/                             # Documentation guides
 functions/_middleware.js                 # Access control (blocks dev files from public)
 functions/pool/main/<letter>/<package>/  # Cloudflare Functions for binary redirects
+packages.yml                             # Package configuration (add new packages here)
+scripts/create-update-pr.sh              # Create PRs for repository updates
+scripts/lib/                             # Shared shell libraries (validation, checksums, require)
+scripts/sign-release.sh                  # Sign Release file with GPG
+scripts/update-repo.sh                   # Generate Packages and Release files
 tests/                                   # Docker-based installation tests
 ```
 
@@ -31,12 +33,17 @@ tests/                                   # Docker-based installation tests
 Run `make help` to see all available commands. Examples:
 
 ```bash
+make clean                               # Remove generated artifacts
+make help                                # Show available commands
+make lint                                # Check shell scripts (formatting + linting)
+make lint-fix                            # Fix shell script formatting
+make sign                                # Sign Release file with GPG
 make test                                # Test all packages
-make test PKG=keystone-cli               # Test specific package
 make test IMAGE=ubuntu:24.04             # Test on specific image
-make validate                            # Validate local repo generation
+make test PKG=keystone-cli               # Test specific package
 make update                              # Update all packages to latest
 make update VERSIONS=keystone-cli:0.1.9  # Update specific version
+make validate                            # Validate local repo generation
 ```
 
 Or use the scripts directly:
