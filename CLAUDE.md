@@ -72,12 +72,12 @@ shfmt -d -i 2 -ci -bn -sr scripts/ tests/
 shfmt -w -i 2 -ci -bn -sr scripts/ tests/
 ```
 
-| Flag | Meaning |
-| ---- | ------- |
-| `-i 2` | 2-space indentation |
-| `-ci` | Indent case labels |
-| `-bn` | Binary ops (`&&`, `\|`) start a line |
-| `-sr` | Redirect operators followed by space |
+| Flag   | Meaning                              |
+| ------ | ------------------------------------ |
+| `-i 2` | 2-space indentation                  |
+| `-ci`  | Indent case labels                   |
+| `-bn`  | Binary ops (`&&`, `\|`) start a line |
+| `-sr`  | Redirect operators followed by space |
 
 ### Build Landing Page (handled by Cloudflare)
 
