@@ -1,0 +1,13 @@
+# Shell dialect
+shell=bash
+
+# Follow sourced files
+external-sources=true
+
+# Enable stricter checks
+enable=require-variable-braces
+enable=quote-safe-variables
+enable=check-unassigned-uppercase
+enable=check-extra-masked-returns
+enable=require-double-brackets
+enable=deprecate-which

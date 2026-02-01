@@ -60,17 +60,17 @@ Repository updates are also automated via GitHub Actions (trigger from Actions U
 
 See [docs/how-to/how-to-add-a-new-package.md](docs/how-to/how-to-add-a-new-package.md) for detailed steps.
 
-### Shell Script Formatting
+### Shell Script Quality
 
-Shell scripts are formatted with [shfmt](https://github.com/mvdan/sh). CI enforces formatting.
+Shell scripts are checked by [shfmt](https://github.com/mvdan/sh) (formatting) and
+[ShellCheck](https://github.com/koalaman/shellcheck) (linting). CI enforces both.
 
 ```bash
-# Check formatting (reports diff, exits non-zero if unformatted)
-shfmt -d -i 2 -ci -bn -sr scripts/ tests/
-
-# Auto-format all scripts
-shfmt -w -i 2 -ci -bn -sr scripts/ tests/
+make lint        # Check formatting (shfmt) + linting (shellcheck)
+make lint-fix    # Auto-fix formatting
 ```
+
+**shfmt flags:**
 
 | Flag   | Meaning                              |
 | ------ | ------------------------------------ |
@@ -78,6 +78,19 @@ shfmt -w -i 2 -ci -bn -sr scripts/ tests/
 | `-ci`  | Indent case labels                   |
 | `-bn`  | Binary ops (`&&`, `\|`) start a line |
 | `-sr`  | Redirect operators followed by space |
+
+**ShellCheck configuration (`.shellcheckrc`):**
+
+| Option                       | Meaning                                    |
+| ---------------------------- | ------------------------------------------ |
+| `shell=bash`                 | Assume bash dialect                        |
+| `external-sources=true`      | Follow sourced files                       |
+| `require-variable-braces`    | Require `${var}` instead of `$var`         |
+| `quote-safe-variables`       | Warn on unquoted variables                 |
+| `check-unassigned-uppercase` | Warn on uninitialized uppercase vars       |
+| `check-extra-masked-returns` | Detect hidden exit codes                   |
+| `require-double-brackets`    | Enforce `[[` over `[` for bash             |
+| `deprecate-which`            | Use `command -v` instead of `which`        |
 
 ### Build Landing Page (handled by Cloudflare)
 

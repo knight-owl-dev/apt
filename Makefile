@@ -23,8 +23,10 @@ update: ## Update repo metadata (VERSIONS="pkg:1.0.0")
 sign: ## Sign Release file with GPG
 	./scripts/sign-release.sh
 
-lint: ## Check shell script formatting
+lint: ## Check shell scripts (formatting + linting)
 	shfmt -d -i 2 -ci -bn -sr scripts/ tests/
+	shellcheck --severity=warning scripts/*.sh scripts/lib/*.sh tests/*.sh
+	@echo "All checks passed"
 
 lint-fix: ## Fix shell script formatting
 	shfmt -w -i 2 -ci -bn -sr scripts/ tests/

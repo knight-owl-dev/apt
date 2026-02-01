@@ -16,8 +16,8 @@ require_bash4() {
 require_command() {
   local cmd="$1"
   local install_hint="${2:-}"
-  if ! command -v "$cmd" &> /dev/null; then
-    echo "Error: $cmd is required.${install_hint:+ $install_hint}" >&2
+  if ! command -v "${cmd}" &> /dev/null; then
+    echo "Error: ${cmd} is required.${install_hint:+ ${install_hint}}" >&2
     return 1
   fi
 }
