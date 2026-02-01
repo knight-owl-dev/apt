@@ -17,7 +17,9 @@ export function onRequest(context) {
 
   // Parse version from filename: keystone-cli_{version}_{arch}.deb
   // Version must be semver format: X.Y.Z or X.Y.Z-prerelease (e.g., 0.1.9, 1.0.0-beta.1)
-  const match = filename.match(/^keystone-cli_(\d+\.\d+\.\d+(?:-[a-zA-Z0-9.]+)?)_(amd64|arm64)\.deb$/);
+  const match = filename.match(
+    /^keystone-cli_(\d+\.\d+\.\d+(?:-[a-zA-Z0-9.]+)?)_(amd64|arm64)\.deb$/,
+  );
 
   if (!match) {
     return new Response('Not found', { status: 404 });

@@ -15,11 +15,13 @@ This design minimizes storage since only apt metadata is stored here, while bina
 ## Repository Structure
 
 ```plain
+biome.json                               # Biome (JS linter) configuration
 dists/stable/                            # Release files (Release, InRelease, Release.gpg)
 dists/stable/main/binary-{amd64,arm64}/  # Apt package metadata (Packages, Packages.gz)
 docs/how-to/                             # Documentation guides
 functions/_middleware.js                 # Access control (blocks dev files from public)
 functions/pool/main/<letter>/<package>/  # Cloudflare Functions for binary redirects
+package.json                             # Node.js dependencies (Biome)
 packages.yml                             # Package configuration (add new packages here)
 scripts/create-update-pr.sh              # Create PRs for repository updates
 scripts/lib/                             # Shared shell libraries (validation, checksums, require)
@@ -35,8 +37,8 @@ Run `make help` to see all available commands. Examples:
 ```bash
 make clean                               # Remove generated artifacts
 make help                                # Show available commands
-make lint                                # Check shell scripts (formatting + linting)
-make lint-fix                            # Fix shell script formatting
+make lint                                # Check all (shell + JS)
+make lint-fix                            # Fix all formatting
 make sign                                # Sign Release file with GPG
 make test                                # Test all packages
 make test IMAGE=ubuntu:24.04             # Test on specific image
@@ -67,15 +69,21 @@ Repository updates are also automated via GitHub Actions (trigger from Actions U
 
 See [docs/how-to/how-to-add-a-new-package.md](docs/how-to/how-to-add-a-new-package.md) for detailed steps.
 
-### Shell Script Quality
+### Code Quality
 
-Shell scripts are checked by [shfmt](https://github.com/mvdan/sh) (formatting) and
-[ShellCheck](https://github.com/koalaman/shellcheck) (linting). CI enforces both.
+Shell scripts and JavaScript are linted in CI.
 
 ```bash
-make lint        # Check formatting (shfmt) + linting (shellcheck)
-make lint-fix    # Auto-fix formatting
+make lint          # Check all (shell + JS)
+make lint-fix      # Fix all formatting
+make lint-sh       # Check shell only
+make lint-js       # Check JS only
 ```
+
+#### Shell (shfmt + ShellCheck)
+
+Shell scripts are checked by [shfmt](https://github.com/mvdan/sh) (formatting) and
+[ShellCheck](https://github.com/koalaman/shellcheck) (linting).
 
 **shfmt flags:**
 
@@ -99,6 +107,18 @@ make lint-fix    # Auto-fix formatting
 | `require-double-brackets`    | Enforce `[[` over `[` for bash             |
 | `deprecate-which`            | Use `command -v` instead of `which`        |
 
+#### JavaScript (Biome)
+
+Cloudflare Functions are checked by [Biome](https://biomejs.dev/) for linting and formatting.
+
+**Biome configuration (`biome.json`):**
+
+| Option                            | Value    | Meaning                    |
+| --------------------------------- | -------- | -------------------------- |
+| `formatter.indentStyle`           | `space`  | Use spaces for indentation |
+| `formatter.indentWidth`           | `2`      | 2-space indentation        |
+| `javascript.formatter.quoteStyle` | `single` | Use single quotes          |
+
 ### Workflow Script Style
 
 Inline shell scripts in GitHub Actions workflows can't be auto-linted. Follow these guidelines:
@@ -113,6 +133,11 @@ Inline shell scripts in GitHub Actions workflows can't be auto-linted. Follow th
 ```bash
 npx markdown-to-html-cli --source README.md --output index.html
 ```
+
+### Commit Messages
+
+- Do not reference issues in commit message titles or bodies unless explicitly requested
+- Issue linking is managed through PRs, not commit messages
 
 ## Architecture Details
 

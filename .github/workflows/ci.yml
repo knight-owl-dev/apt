@@ -18,11 +18,23 @@ jobs:
       - name: Setup shfmt
         uses: mfinelli/setup-shfmt@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "lts/*"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
       - name: Check formatting (shfmt)
         run: shfmt -d -i 2 -ci -bn -sr scripts/ tests/
 
-      - name: Lint (shellcheck)
+      - name: Lint shell (shellcheck)
         run: shellcheck --severity=warning scripts/*.sh scripts/lib/*.sh tests/*.sh
+
+      - name: Lint JS (biome)
+        run: npx biome check functions/
 
   validate:
     runs-on: ubuntu-latest
