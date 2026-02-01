@@ -131,6 +131,8 @@ npx markdown-to-html-cli --source README.md --output index.html
 
 ## Security
 
+For detailed security guidelines, see [docs/how-to/how-to-security.md](docs/how-to/how-to-security.md).
+
 ### Access Control
 
 The middleware (`functions/_middleware.js`) restricts public access to apt-required paths only:
