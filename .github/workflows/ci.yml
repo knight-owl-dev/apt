@@ -15,6 +15,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Setup actionlint
+        uses: raven-actions/actionlint@v2
+
       - name: Setup shfmt
         uses: mfinelli/setup-shfmt@v4
 
@@ -35,9 +38,6 @@ jobs:
 
       - name: Lint JS (biome)
         run: npx biome check functions/
-
-      - name: Setup actionlint
-        uses: raven-actions/actionlint@v2
 
       - name: Check GitHub Actions workflows (actionlint)
         run: actionlint
