@@ -1,4 +1,4 @@
-.PHONY: help test validate update sign lint lint-sh lint-js lint-actions lint-fix lint-sh-fix lint-js-fix clean
+.PHONY: help test validate update sign lint lint-sh lint-js lint-actions lint-md lint-fix lint-sh-fix lint-js-fix lint-md-fix clean
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-12s %s\n", $$1, $$2}'
@@ -23,7 +23,7 @@ update: ## Update repo metadata (VERSIONS="pkg:1.0.0")
 sign: ## Sign Release file with GPG
 	./scripts/sign-release.sh
 
-lint: lint-sh lint-js lint-actions ## Check all (shell + JS + actions)
+lint: lint-sh lint-js lint-actions lint-md ## Check all (shell + JS + actions + markdown)
 	@echo "All checks passed"
 
 lint-sh: ## Check shell scripts (formatting + linting)
@@ -36,13 +36,19 @@ lint-js: ## Check JavaScript (biome)
 lint-actions: ## Check GitHub Actions workflows (actionlint)
 	actionlint
 
-lint-fix: lint-sh-fix lint-js-fix ## Fix all formatting
+lint-md: ## Check Markdown files (markdownlint)
+	markdownlint-cli2 "*.md" "docs/**/*.md"
+
+lint-fix: lint-sh-fix lint-js-fix lint-md-fix ## Fix all formatting
 
 lint-sh-fix: ## Fix shell script formatting
 	shfmt -w -i 2 -ci -bn -sr scripts/ tests/
 
 lint-js-fix: ## Fix JavaScript formatting
 	npx biome check --write functions/
+
+lint-md-fix: ## Fix Markdown files
+	markdownlint-cli2 --fix "*.md" "docs/**/*.md"
 
 clean: ## Remove generated artifacts
 	rm -rf artifacts/
