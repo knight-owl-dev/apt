@@ -56,7 +56,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           VERSIONS: ${{ steps.args.outputs.versions }}
         run: |
-          # shellcheck disable=SC2086 -- $VERSIONS must word-split to pass multiple package specs as separate args
+          # shellcheck disable=SC2086
+          # $VERSIONS must word-split to pass multiple package specs as separate args
           ./scripts/update-repo.sh ${VERSIONS}
 
       - name: Import GPG key

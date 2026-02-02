@@ -71,10 +71,10 @@ See [docs/how-to/how-to-add-a-new-package.md](docs/how-to/how-to-add-a-new-packa
 
 ### Code Quality
 
-Shell scripts and JavaScript are linted in CI.
+Shell scripts, JavaScript, and GitHub Actions workflows are linted in CI.
 
 ```bash
-make lint          # Check all (shell + JS)
+make lint          # Check all (shell + JS + actions)
 make lint-fix      # Fix all formatting
 make lint-sh       # Check shell only
 make lint-js       # Check JS only
@@ -118,6 +118,22 @@ Cloudflare Functions are checked by [Biome](https://biomejs.dev/) for linting an
 | `formatter.indentStyle`           | `space`  | Use spaces for indentation |
 | `formatter.indentWidth`           | `2`      | 2-space indentation        |
 | `javascript.formatter.quoteStyle` | `single` | Use single quotes          |
+
+#### GitHub Actions (actionlint)
+
+GitHub Actions workflows are checked by [actionlint](https://github.com/rhysd/actionlint).
+
+```bash
+make lint-actions  # Check workflows only (requires actionlint installed locally)
+```
+
+actionlint validates:
+
+- Workflow syntax and structure
+- Action and reusable workflow references
+- Expression syntax (`${{ }}`)
+- Shell script syntax in `run:` steps
+- Runner labels and matrix configurations
 
 ### Workflow Script Style
 

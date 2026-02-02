@@ -1,4 +1,4 @@
-.PHONY: help test validate update sign lint lint-sh lint-js lint-fix lint-sh-fix lint-js-fix clean
+.PHONY: help test validate update sign lint lint-sh lint-js lint-actions lint-fix lint-sh-fix lint-js-fix clean
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-12s %s\n", $$1, $$2}'
@@ -23,7 +23,7 @@ update: ## Update repo metadata (VERSIONS="pkg:1.0.0")
 sign: ## Sign Release file with GPG
 	./scripts/sign-release.sh
 
-lint: lint-sh lint-js ## Check all (shell + JS)
+lint: lint-sh lint-js lint-actions ## Check all (shell + JS + actions)
 	@echo "All checks passed"
 
 lint-sh: ## Check shell scripts (formatting + linting)
@@ -32,6 +32,9 @@ lint-sh: ## Check shell scripts (formatting + linting)
 
 lint-js: ## Check JavaScript (biome)
 	npx biome check functions/
+
+lint-actions: ## Check GitHub Actions workflows (actionlint)
+	actionlint
 
 lint-fix: lint-sh-fix lint-js-fix ## Fix all formatting
 

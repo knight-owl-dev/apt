@@ -36,6 +36,12 @@ jobs:
       - name: Lint JS (biome)
         run: npx biome check functions/
 
+      - name: Setup actionlint
+        uses: raven-actions/actionlint@v2
+
+      - name: Check GitHub Actions workflows (actionlint)
+        run: actionlint
+
   validate:
     runs-on: ubuntu-latest
 
