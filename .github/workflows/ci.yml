@@ -42,6 +42,13 @@ jobs:
       - name: Check GitHub Actions workflows (actionlint)
         run: actionlint
 
+      - name: Check Markdown files (markdownlint)
+        uses: DavidAnson/markdownlint-cli2-action@v22
+        with:
+          globs: |
+            *.md
+            docs/**/*.md
+
   validate:
     runs-on: ubuntu-latest
 

@@ -71,10 +71,10 @@ See [docs/how-to/how-to-add-a-new-package.md](docs/how-to/how-to-add-a-new-packa
 
 ### Code Quality
 
-Shell scripts, JavaScript, and GitHub Actions workflows are linted in CI.
+Shell scripts, JavaScript, GitHub Actions workflows, and Markdown files are linted in CI.
 
 ```bash
-make lint          # Check all (shell + JS + actions)
+make lint          # Check all (shell + JS + actions + markdown)
 make lint-fix      # Fix all formatting
 make lint-sh       # Check shell only
 make lint-js       # Check JS only
@@ -134,6 +134,21 @@ actionlint validates:
 - Expression syntax (`${{ }}`)
 - Shell script syntax in `run:` steps
 - Runner labels and matrix configurations
+
+#### Markdown (markdownlint)
+
+Markdown files are checked by [markdownlint](https://github.com/DavidAnson/markdownlint).
+
+```bash
+make lint-md       # Check Markdown only
+make lint-md-fix   # Fix Markdown formatting
+```
+
+**markdownlint configuration (`.markdownlint-cli2.jsonc`):**
+
+| Option | Value   | Meaning                                 |
+| ------ | ------- | --------------------------------------- |
+| MD013  | `false` | Disable line length limit (tables/code) |
 
 ### Workflow Script Style
 
