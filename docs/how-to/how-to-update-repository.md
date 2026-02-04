@@ -77,14 +77,23 @@ Requirements: Bash 4+, `yq`, `gh` CLI, `dpkg-deb`, `curl`
 
 ### Automated trigger
 
-Package release workflows can trigger this via `repository_dispatch`. Add this step to your
+Package release workflows can trigger this via `repository_dispatch`. Add these steps to your
 release workflow:
 
 ```yaml
+- name: Generate GitHub App token
+  id: app-token
+  uses: actions/create-github-app-token@v2
+  with:
+    app-id: ${{ secrets.APP_ID }}
+    private-key: ${{ secrets.APP_PRIVATE_KEY }}
+    owner: knight-owl-dev
+    repositories: apt
+
 - name: Trigger apt repository update
   uses: peter-evans/repository-dispatch@v4
   with:
-    token: ${{ secrets.APT_REPO_TOKEN }}
+    token: ${{ steps.app-token.outputs.token }}
     repository: knight-owl-dev/apt
     event-type: release-published
     client-payload: '{"versions": "my-package:${{ needs.release.outputs.version }}"}'
@@ -92,8 +101,8 @@ release workflow:
 
 Required setup:
 
-1. Create a fine-grained PAT scoped to `knight-owl-dev/apt` with **Contents: Read and write**
-2. Add the PAT as a secret (e.g., `APT_REPO_TOKEN`) in your package's repository
+1. Install the knight-owl-dev GitHub App on your package's repo
+2. Ensure `APP_ID` and `APP_PRIVATE_KEY` org secrets are available to your repo
 
 You can also trigger manually via the `gh` CLI:
 
@@ -167,44 +176,32 @@ apt-get install keystone-cli
 
 ## Secrets Required
 
-| Secret            | Purpose                                      |
-|-------------------|----------------------------------------------|
-| `GPG_PRIVATE_KEY` | Armored private key for signing              |
-| `GPG_PASSPHRASE`  | Passphrase for the GPG key                   |
-| `PR_TOKEN`        | Fine-grained PAT for creating PRs (see below)|
+| Secret              | Purpose                                  |
+|---------------------|------------------------------------------|
+| `GPG_PRIVATE_KEY`   | Armored private key for signing          |
+| `GPG_PASSPHRASE`    | Passphrase for the GPG key               |
+| `APP_ID`            | GitHub App ID (org-level secret)         |
+| `APP_PRIVATE_KEY`   | GitHub App private key (org-level secret)|
 
-### PR_TOKEN Setup
+### GitHub App Setup
 
-The workflow uses a fine-grained Personal Access Token to create PRs. This is required because
-`GITHUB_TOKEN` doesn't trigger other workflows, so CI wouldn't run on auto-created PRs.
+The workflow uses a GitHub App token to create PRs. This is required because `GITHUB_TOKEN`
+doesn't trigger other workflows, so CI wouldn't run on auto-created PRs.
 
-**Create the token:**
+The GitHub App is configured at the organization level. To verify or troubleshoot:
 
-1. Go to <https://github.com/settings/personal-access-tokens/new>
-2. Name: `apt-pr-token`
-3. Expiration: 90 days (or your preference)
-4. Repository access: Select `knight-owl-dev/apt` only
-5. Permissions:
-   - **Contents**: Read and write
-   - **Pull requests**: Read and write
-6. Generate token
+1. Confirm the App is installed on this repo:
+   [knight-owl-dev GitHub Apps](https://github.com/organizations/knight-owl-dev/settings/installations)
 
-**Set the secret:**
+2. Verify org secrets are available:
 
-```bash
-gh secret set PR_TOKEN --repo knight-owl-dev/apt
-# Paste the token when prompted
-```
+    ```bash
+    gh secret list --org knight-owl-dev
+    ```
 
-**Regenerate an expired token:**
+    You should see `APP_ID` and `APP_PRIVATE_KEY`.
 
-1. Go to <https://github.com/settings/personal-access-tokens/active>
-2. Click on the token → **Regenerate token**
-3. Update the secret:
-
-```bash
-gh secret set PR_TOKEN --repo knight-owl-dev/apt
-```
+3. If secrets need regeneration, go to the App settings and generate a new private key
 
 ## Troubleshooting
 

@@ -53,7 +53,7 @@ Workflows use minimal permissions by default:
 
 2. **Token scoping**: The workflow uses two tokens with different scopes:
    - `github.token`: Read-only access for fetching releases
-   - `PR_TOKEN` (secret): Write access only for creating PRs
+   - GitHub App token: Write access only for creating PRs (short-lived, generated on demand)
 
 ### Concurrency Control
 
