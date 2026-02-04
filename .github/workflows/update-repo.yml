@@ -74,9 +74,17 @@ jobs:
       - name: Remove .gitkeep files
         run: find dists -name ".gitkeep" -delete
 
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
       - name: Create PR with changes
         env:
-          GH_TOKEN: ${{ secrets.PR_TOKEN }}
+          # Use GitHub App token to trigger CI workflow on PR (GITHUB_TOKEN doesn't trigger workflows)
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
           VERSIONS: ${{ steps.args.outputs.versions }}
           GITHUB_RUN_ID: ${{ github.run_id }}
           GITHUB_REPOSITORY: ${{ github.repository }}
