@@ -80,7 +80,7 @@ jobs:
         with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
-          repositories: apt
+          repositories: ${{ github.event.repository.name }}
 
       - name: Create PR with changes
         env:
