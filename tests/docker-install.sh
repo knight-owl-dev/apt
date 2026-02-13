@@ -53,5 +53,5 @@ fi
 
 echo ""
 echo "==========================================="
-echo "SUCCESS: ${PACKAGE} installed and working"
+echo "OK: ${PACKAGE} installed and working"
 echo "==========================================="

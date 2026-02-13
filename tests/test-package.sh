@@ -41,9 +41,9 @@ fi
 
 # Validate package exists in config
 if ! yq -e ".packages[] | select(.name == \"${PACKAGE}\")" "${CONFIG_FILE}" &> /dev/null; then
-  echo "Error: Package '${PACKAGE}' not found in packages.yml"
-  echo "Available packages:"
-  yq -r '.packages[].name' "${CONFIG_FILE}" | sed 's/^/  - /'
+  echo "ERROR: Package '${PACKAGE}' not found in packages.yml" >&2
+  echo "Available packages:" >&2
+  yq -r '.packages[].name' "${CONFIG_FILE}" | sed 's/^/  - /' >&2
   exit 1
 fi
 

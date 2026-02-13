@@ -62,9 +62,9 @@ PR_URL=$(gh pr create --title "${TITLE}" --body "Automated apt repository metada
 
 # Enable auto-merge (squash)
 if ! gh pr merge --auto --squash "${PR_URL}"; then
-  echo "Failed to enable auto-merge for PR: ${PR_URL}"
-  echo "Ensure auto-merge is enabled in repository settings and branch protection allows it."
+  echo "ERROR: Failed to enable auto-merge for PR: ${PR_URL}" >&2
+  echo "Ensure auto-merge is enabled in repository settings and branch protection allows it." >&2
   exit 1
 fi
 
-echo "Created PR: ${PR_URL}"
+echo "OK: ${PR_URL}"
