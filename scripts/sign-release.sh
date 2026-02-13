@@ -19,7 +19,7 @@ RELEASE_DIR="${REPO_ROOT}/dists/stable"
 cd "${RELEASE_DIR}"
 
 if [[ ! -f Release ]]; then
-  echo "Error: Release file not found at ${RELEASE_DIR}/Release"
+  echo "ERROR: Release file not found at ${RELEASE_DIR}/Release" >&2
   exit 1
 fi
 
@@ -31,10 +31,10 @@ if [[ -z "${KEY_ID}" ]]; then
   mapfile -t KEY_IDS < <(gpg --list-secret-keys --keyid-format=long --with-colons 2> /dev/null | awk -F: '$1=="sec"{print $5}')
 
   if ((${#KEY_IDS[@]} == 0)); then
-    echo "Error: No GPG secret key found"
+    echo "ERROR: No GPG secret key found" >&2
     exit 1
   elif ((${#KEY_IDS[@]} > 1)); then
-    echo "Error: Multiple GPG secret keys found. Set GPG_KEY_ID to the desired key ID."
+    echo "ERROR: Multiple GPG secret keys found. Set GPG_KEY_ID to the desired key ID." >&2
     exit 1
   fi
   KEY_ID="${KEY_IDS[0]}"
@@ -44,7 +44,7 @@ echo "Signing with key: ${KEY_ID}"
 
 # Warn if no passphrase provided (may be intentional for passwordless keys)
 if [[ -z "${GPG_PASSPHRASE:-}" ]]; then
-  echo "Warning: GPG_PASSPHRASE not set. Assuming passwordless key or interactive mode."
+  echo "WARN: GPG_PASSPHRASE not set. Assuming passwordless key or interactive mode." >&2
 fi
 
 # Create InRelease (clearsigned)
@@ -65,4 +65,4 @@ gpg --default-key "${KEY_ID}" \
   -o Release.gpg \
   Release
 
-echo "Generated InRelease and Release.gpg"
+echo "OK: InRelease and Release.gpg"

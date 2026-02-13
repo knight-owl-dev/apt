@@ -94,26 +94,26 @@ verify_checksum() {
     ' "${checksums_file}")
 
   if [[ -z "${expected}" ]]; then
-    echo "Warning: No checksum found for ${filename} in checksums file"
+    echo "WARN: No checksum found for ${filename} in checksums file" >&2
     return 1
   fi
 
   # Compute actual checksum
   local actual
   if ! actual=$(get_sha256 "${file}"); then
-    echo "Error: Failed to compute SHA256 for ${file}"
+    echo "ERROR: Failed to compute SHA256 for ${file}" >&2
     return 1
   fi
 
   # Compare (exact match - SHA256 hashes are conventionally lowercase)
   if [[ "${expected}" != "${actual}" ]]; then
-    echo "Error: Checksum mismatch for ${filename}"
-    echo "  Expected: ${expected}"
-    echo "  Actual:   ${actual}"
+    echo "ERROR: Checksum mismatch for ${filename}" >&2
+    echo "  Expected: ${expected}" >&2
+    echo "  Actual:   ${actual}" >&2
     return 1
   fi
 
-  echo "Verified: ${filename}"
+  echo "OK: ${filename}"
   return 0
 }
 
@@ -128,8 +128,8 @@ download_and_verify() {
   # Fetch checksums file first (required)
   local checksums_file
   if ! checksums_file=$(fetch_checksums_file "${repo}" "${version}"); then
-    echo "Error: No SHA256SUMS file found for ${repo} v${version}"
-    echo "Releases must include a checksums file (SHA256SUMS, SHA256SUMS.txt, checksums.txt, or checksums-sha256.txt)"
+    echo "ERROR: No SHA256SUMS file found for ${repo} v${version}" >&2
+    echo "Releases must include a checksums file (SHA256SUMS, SHA256SUMS.txt, checksums.txt, or checksums-sha256.txt)" >&2
     exit 1
   fi
 
@@ -139,7 +139,7 @@ download_and_verify() {
 
   # Verify checksum
   if ! verify_checksum "${dest}" "${checksums_file}"; then
-    echo "Error: Checksum verification failed for ${deb_file}"
+    echo "ERROR: Checksum verification failed for ${deb_file}" >&2
     rm -f "${dest}"
     exit 1
   fi
@@ -160,7 +160,7 @@ fi
 
 # Ensure artifacts directory is safe (no symlink path traversal)
 if [[ -L "${ARTIFACTS_DIR}" ]]; then
-  echo "Error: ${ARTIFACTS_DIR} is a symlink, refusing to continue"
+  echo "ERROR: ${ARTIFACTS_DIR} is a symlink, refusing to continue" >&2
   exit 1
 fi
 mkdir -p "${ARTIFACTS_DIR}"
@@ -168,16 +168,16 @@ mkdir -p "${ARTIFACTS_DIR}"
 REAL_ARTIFACTS="$(realpath "${ARTIFACTS_DIR}")"
 REAL_REPO="$(realpath "${REPO_ROOT}")"
 if [[ "${REAL_ARTIFACTS}" != "${REAL_REPO}/artifacts" ]]; then
-  echo "Error: Artifacts directory resolves outside repository: ${REAL_ARTIFACTS}"
+  echo "ERROR: Artifacts directory resolves outside repository: ${REAL_ARTIFACTS}" >&2
   exit 1
 fi
 
 # Download packages (only those being updated)
-echo "==> Downloading packages..."
+echo "Downloading packages..."
 for package in "${UPDATE_PACKAGES[@]}"; do
   # Validate package exists in config
   if ! yq -e ".packages[] | select(.name == \"${package}\")" "${CONFIG_FILE}" &> /dev/null; then
-    echo "Error: Package '${package}' not found in packages.yml"
+    echo "ERROR: Package '${package}' not found in packages.yml" >&2
     exit 1
   fi
   repo=$(yq -r ".packages[] | select(.name == \"${package}\") | .repo" "${CONFIG_FILE}")
@@ -200,7 +200,7 @@ for package in "${UPDATE_PACKAGES[@]}"; do
 done
 
 # For packages not being updated, fetch their current version from existing Packages file
-echo "==> Resolving versions for unchanged packages..."
+echo "Resolving versions for unchanged packages..."
 for package in "${ALL_PACKAGES[@]}"; do
   if [[ ! -v "VERSIONS[${package}]" ]]; then
     # Try to get version from existing Packages files across all architectures
@@ -218,7 +218,7 @@ for package in "${ALL_PACKAGES[@]}"; do
       VERSIONS["${package}"]="${existing_version}"
       echo "Package ${package}: using existing version ${existing_version}"
     else
-      echo "Error: No version found for ${package} (not in args, not in existing metadata)"
+      echo "ERROR: No version found for ${package} (not in args, not in existing metadata)" >&2
       exit 1
     fi
   fi
@@ -240,7 +240,7 @@ for package in "${ALL_PACKAGES[@]}"; do
 done
 
 # Generate Packages files for each architecture
-echo "==> Generating Packages files..."
+echo "Generating Packages files..."
 for arch in "${ALL_ARCHS[@]}"; do
   packages_dir="${REPO_ROOT}/dists/stable/main/binary-${arch}"
   mkdir -p "${packages_dir}"
@@ -259,7 +259,7 @@ for arch in "${ALL_ARCHS[@]}"; do
     deb_file="${ARTIFACTS_DIR}/${package}_${version}_${arch}.deb"
 
     if [[ ! -f "${deb_file}" ]]; then
-      echo "Warning: ${deb_file} not found, skipping"
+      echo "WARN: ${deb_file} not found, skipping" >&2
       continue
     fi
 
@@ -268,19 +268,19 @@ for arch in "${ALL_ARCHS[@]}"; do
 
     # Calculate checksums
     if ! size=$(get_file_size "${deb_file}"); then
-      echo "Error: Failed to get file size for ${deb_file}"
+      echo "ERROR: Failed to get file size for ${deb_file}" >&2
       exit 1
     fi
     if ! md5=$(get_md5 "${deb_file}"); then
-      echo "Error: Failed to compute MD5 for ${deb_file}"
+      echo "ERROR: Failed to compute MD5 for ${deb_file}" >&2
       exit 1
     fi
     if ! sha1=$(get_sha1 "${deb_file}"); then
-      echo "Error: Failed to compute SHA1 for ${deb_file}"
+      echo "ERROR: Failed to compute SHA1 for ${deb_file}" >&2
       exit 1
     fi
     if ! sha256=$(get_sha256 "${deb_file}"); then
-      echo "Error: Failed to compute SHA256 for ${deb_file}"
+      echo "ERROR: Failed to compute SHA256 for ${deb_file}" >&2
       exit 1
     fi
 
@@ -307,7 +307,7 @@ for arch in "${ALL_ARCHS[@]}"; do
 done
 
 # Generate Release file
-echo "==> Generating Release file..."
+echo "Generating Release file..."
 cd "${REPO_ROOT}/dists/stable"
 
 {
@@ -341,7 +341,7 @@ cd "${REPO_ROOT}/dists/stable"
   done
 } > Release
 
-echo "==> Release file generated:"
+echo "Release file generated:"
 cat Release
 
 # Clean up (skip with KEEP_ARTIFACTS=1 for testing)
@@ -349,4 +349,4 @@ if [[ "${KEEP_ARTIFACTS:-}" != "1" ]]; then
   rm -rf "${ARTIFACTS_DIR}"
 fi
 
-echo "==> Done! Remember to sign the Release file."
+echo "OK: Repository metadata updated"

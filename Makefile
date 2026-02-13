@@ -24,31 +24,46 @@ sign: ## Sign Release file with GPG
 	./scripts/sign-release.sh
 
 lint: lint-sh lint-js lint-actions lint-md ## Check all (shell + JS + actions + markdown)
-	@echo "All checks passed"
 
 lint-sh: ## Check shell scripts (formatting + linting)
-	shfmt -d -i 2 -ci -bn -sr scripts/ tests/
-	shellcheck --severity=warning scripts/*.sh scripts/lib/*.sh tests/*.sh
+	@echo "Checking shell formatting..."
+	@shfmt -d -i 2 -ci -bn -sr scripts/ tests/
+	@echo "OK"
+	@echo "Checking shell scripts..."
+	@shellcheck --severity=warning scripts/*.sh scripts/lib/*.sh tests/*.sh
+	@echo "OK"
 
 lint-js: ## Check JavaScript (biome)
-	npx biome check functions/
+	@echo "Checking JavaScript..."
+	@biome check functions/
+	@echo "OK"
 
 lint-actions: ## Check GitHub Actions workflows (actionlint)
-	actionlint
+	@echo "Checking GitHub Actions workflows..."
+	@actionlint .github/workflows/*.yml
+	@echo "OK"
 
 lint-md: ## Check Markdown files (markdownlint)
-	markdownlint-cli2 "*.md" "docs/**/*.md"
+	@echo "Checking Markdown..."
+	@markdownlint-cli2 "**/*.md"
+	@echo "OK"
 
 lint-fix: lint-sh-fix lint-js-fix lint-md-fix ## Fix all formatting
 
 lint-sh-fix: ## Fix shell script formatting
-	shfmt -w -i 2 -ci -bn -sr scripts/ tests/
+	@echo "Fixing shell formatting..."
+	@shfmt -w -i 2 -ci -bn -sr scripts/ tests/
+	@echo "OK"
 
 lint-js-fix: ## Fix JavaScript formatting
-	npx biome check --write functions/
+	@echo "Fixing JavaScript formatting..."
+	@biome check --write functions/
+	@echo "OK"
 
 lint-md-fix: ## Fix Markdown files
-	markdownlint-cli2 --fix "*.md" "docs/**/*.md"
+	@echo "Fixing Markdown formatting..."
+	@markdownlint-cli2 --fix "**/*.md"
+	@echo "OK"
 
 clean: ## Remove generated artifacts
 	rm -rf artifacts/

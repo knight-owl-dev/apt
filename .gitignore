@@ -5,9 +5,6 @@
 # Build artifacts
 artifacts/
 
-# Node (if dependencies are added later)
-node_modules/
-
 # OS files
 .DS_Store
 Thumbs.db

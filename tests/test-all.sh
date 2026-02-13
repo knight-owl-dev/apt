@@ -33,11 +33,11 @@ echo ""
 FAILED=()
 
 for package in "${PACKAGES[@]}"; do
-  echo ">>> Testing: ${package}"
+  echo "Testing: ${package}"
   if "${SCRIPT_DIR}/test-package.sh" "${package}" "${IMAGE}"; then
-    echo ">>> PASSED: ${package}"
+    echo "OK: ${package}"
   else
-    echo ">>> FAILED: ${package}"
+    echo "FAIL: ${package}"
     FAILED+=("${package}")
   fi
   echo ""
@@ -45,9 +45,9 @@ done
 
 echo "==========================================="
 if [[ ${#FAILED[@]} -eq 0 ]]; then
-  echo "All ${#PACKAGES[@]} package(s) passed"
+  echo "OK: ${#PACKAGES[@]} package(s) passed"
   exit 0
 else
-  echo "FAILED: ${FAILED[*]}"
+  echo "FAIL: ${FAILED[*]}"
   exit 1
 fi

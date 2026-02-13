@@ -43,19 +43,24 @@ source "${REPO_ROOT}/scripts/lib/require.sh"
 source "${REPO_ROOT}/scripts/lib/checksums.sh"
 source "${REPO_ROOT}/scripts/lib/packages.sh"
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-NC='\033[0m' # No Color
+# TTY-aware colors
+if [[ -t 1 ]]; then
+  GREEN=$'\033[32m'
+  RED=$'\033[31m'
+  RESET=$'\033[0m'
+else
+  GREEN=""
+  RED=""
+  RESET=""
+fi
 
-pass() { echo -e "${GREEN}✓${NC} $1"; }
+pass() { echo "  ${GREEN}OK${RESET}    $1"; }
 fail() {
-  echo -e "${RED}✗${NC} $1"
+  echo "  ${RED}FAIL${RESET}  $1"
   FAILED=1
 }
-warn() { echo -e "${YELLOW}!${NC} $1"; }
-info() { echo "  $1"; }
+warn() { echo "  WARN  $1"; }
+info() { echo "   $1"; }
 
 FAILED=0
 
@@ -202,9 +207,9 @@ done
 rm -rf "${REPO_ROOT}/artifacts"
 
 echo ""
-echo "=== Summary ==="
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━"
 if [[ ${FAILED} -eq 0 ]]; then
-  echo -e "${GREEN}All validations passed!${NC}"
+  echo "${GREEN}OK${RESET}: all validations passed"
   echo ""
   echo "Generated files:"
   echo "  - dists/stable/Release"
@@ -224,6 +229,6 @@ if [[ ${FAILED} -eq 0 ]]; then
     echo "      or 'git diff dists/' to review them."
   fi
 else
-  echo -e "${RED}Some validations failed!${NC}"
+  echo "${RED}FAIL${RESET}: some validations failed"
   exit 1
 fi

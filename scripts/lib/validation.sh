@@ -6,7 +6,7 @@
 validate_package_name() {
   local name="$1"
   if [[ ! "${name}" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]]; then
-    echo "Error: Invalid package name '${name}'. Must be lowercase alphanumeric with hyphens." >&2
+    echo "ERROR: Invalid package name '${name}'. Must be lowercase alphanumeric with hyphens." >&2
     return 1
   fi
 }
@@ -16,7 +16,7 @@ validate_package_name() {
 validate_version() {
   local version="$1"
   if [[ ! "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
-    echo "Error: Invalid version '${version}'. Must be semver format (e.g., 1.0.0 or 1.0.0-beta.1)." >&2
+    echo "ERROR: Invalid version '${version}'. Must be semver format (e.g., 1.0.0 or 1.0.0-beta.1)." >&2
     return 1
   fi
 }

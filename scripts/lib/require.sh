@@ -5,7 +5,7 @@
 # Usage: require_bash4
 require_bash4() {
   if [[ ${BASH_VERSINFO[0]} -lt 4 ]]; then
-    echo "Error: Bash 4+ is required (found ${BASH_VERSION})." >&2
+    echo "ERROR: Bash 4+ is required (found ${BASH_VERSION})." >&2
     echo "On macOS, install with: brew install bash" >&2
     return 1
   fi
@@ -17,7 +17,7 @@ require_command() {
   local cmd="$1"
   local install_hint="${2:-}"
   if ! command -v "${cmd}" &> /dev/null; then
-    echo "Error: ${cmd} is required.${install_hint:+ ${install_hint}}" >&2
+    echo "ERROR: ${cmd} is required.${install_hint:+ ${install_hint}}" >&2
     return 1
   fi
 }
