@@ -21,7 +21,6 @@ dists/stable/main/binary-{amd64,arm64}/  # Apt package metadata (Packages, Packa
 docs/how-to/                             # Documentation guides
 functions/_middleware.js                 # Access control (blocks dev files from public)
 functions/pool/main/<letter>/<package>/  # Cloudflare Functions for binary redirects
-package.json                             # Node.js dependencies (Biome)
 packages.yml                             # Package configuration (add new packages here)
 scripts/create-update-pr.sh              # Create PRs for repository updates
 scripts/lib/                             # Shared shell libraries (validation, checksums, require)

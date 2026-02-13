@@ -31,10 +31,10 @@ lint-sh: ## Check shell scripts (formatting + linting)
 	shellcheck --severity=warning scripts/*.sh scripts/lib/*.sh tests/*.sh
 
 lint-js: ## Check JavaScript (biome)
-	npx biome check functions/
+	biome check functions/
 
 lint-actions: ## Check GitHub Actions workflows (actionlint)
-	actionlint
+	actionlint .github/workflows/*.yml
 
 lint-md: ## Check Markdown files (markdownlint)
 	markdownlint-cli2 "*.md" "docs/**/*.md"
@@ -45,7 +45,7 @@ lint-sh-fix: ## Fix shell script formatting
 	shfmt -w -i 2 -ci -bn -sr scripts/ tests/
 
 lint-js-fix: ## Fix JavaScript formatting
-	npx biome check --write functions/
+	biome check --write functions/
 
 lint-md-fix: ## Fix Markdown files
 	markdownlint-cli2 --fix "*.md" "docs/**/*.md"
