@@ -4,6 +4,7 @@ Apt repository for Knight Owl packages, hosted on Cloudflare Pages with binaries
 
 ## Available Packages
 
+- [**ci-tools**](https://github.com/knight-owl-dev/devops) — CI/CD utilities
 - [**keystone-cli**](https://github.com/knight-owl-dev/keystone-cli) — Command-line interface for Keystone
 
 ## Installation
