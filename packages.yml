@@ -17,3 +17,10 @@ packages:
       - amd64
       - arm64
     verify: keystone-cli info
+
+  - name: ci-tools
+    repo: knight-owl-dev/devops
+    architectures:
+      - amd64
+      - arm64
+    verify: validate-action-pins --version
