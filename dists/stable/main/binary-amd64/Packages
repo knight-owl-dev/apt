@@ -15,7 +15,7 @@ SHA1: 2784cabf9267eb3456b9a1c5b32afd0119f69019
 SHA256: 08b88104121d0dbb66a16a17d71de19e9b35b8687ebdee0042af9c54d36ebf54
 
 Package: ci-tools
-Version: 1.0.8
+Version: 1.1.0
 Section: 
 Priority: optional
 Architecture: amd64
@@ -25,9 +25,9 @@ Installed-Size: 8
 Depends: curl, jq
 Homepage: https://github.com/knight-owl-dev/devops
 Description: Org-developed linting tools from the ci-tools image
-Filename: pool/main/c/ci-tools/ci-tools_1.0.8_amd64.deb
-Size: 4498
-MD5sum: 9caad66e3ba0c20bedf2be722ff292c0
-SHA1: 210cab66db1a4e59497c4c6301457f78a3862e60
-SHA256: f69706b4bc290e571bc413e102986db4fecde95ee75294fec0fc7de85137f0dd
+Filename: pool/main/c/ci-tools/ci-tools_1.1.0_amd64.deb
+Size: 4496
+MD5sum: 8f9fbd255a5ca98732ce903c466a62d7
+SHA1: 45bdcd8048c7995f68f5f92fb072e2683534e443
+SHA256: d75cd885352db428391000bcbe71292bb117c87bfaa2671847ff629791ed87ad
 
