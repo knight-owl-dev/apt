@@ -29,6 +29,16 @@ jobs:
         with:
           persist-credentials: false
 
+      # Generate App token early to allow propagation time across GitHub's
+      # infrastructure before git push (avoids intermittent 403 errors)
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          repositories: ${{ github.event.repository.name }}
+
       - name: Install yq
         run: sudo snap install yq
 
@@ -73,14 +83,6 @@ jobs:
 
       - name: Remove .gitkeep files
         run: find dists -name ".gitkeep" -delete
-
-      - name: Generate GitHub App token
-        id: app-token
-        uses: actions/create-github-app-token@v2
-        with:
-          app-id: ${{ secrets.APP_ID }}
-          private-key: ${{ secrets.APP_PRIVATE_KEY }}
-          repositories: ${{ github.event.repository.name }}
 
       - name: Create PR with changes
         env:
