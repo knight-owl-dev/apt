@@ -83,15 +83,15 @@ release workflow:
 ```yaml
 - name: Generate GitHub App token
   id: app-token
-  uses: actions/create-github-app-token@v2
+  uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
   with:
-    app-id: ${{ secrets.APP_ID }}
+    client-id: ${{ vars.APP_CLIENT_ID }}
     private-key: ${{ secrets.APP_PRIVATE_KEY }}
     owner: knight-owl-dev
     repositories: apt
 
 - name: Trigger apt repository update
-  uses: peter-evans/repository-dispatch@v4
+  uses: peter-evans/repository-dispatch@28959ce8df70de7be546dd1250a005dd32156697 # v4.0.1
   with:
     token: ${{ steps.app-token.outputs.token }}
     repository: knight-owl-dev/apt
@@ -102,7 +102,7 @@ release workflow:
 Required setup:
 
 1. Install the knight-owl-dev GitHub App on your package's repo
-2. Ensure `APP_ID` and `APP_PRIVATE_KEY` org secrets are available to your repo
+2. Ensure `APP_CLIENT_ID` org variable and `APP_PRIVATE_KEY` org secret are available to your repo
 
 You can also trigger manually via the `gh` CLI:
 
@@ -174,14 +174,14 @@ apt-get install keystone-cli
   → GET https://github.com/knight-owl-dev/keystone-cli/releases/download/v0.1.9/keystone-cli_0.1.9_amd64.deb
 ```
 
-## Secrets Required
+## Secrets and Variables Required
 
-| Secret              | Purpose                                  |
-|---------------------|------------------------------------------|
-| `GPG_PRIVATE_KEY`   | Armored private key for signing          |
-| `GPG_PASSPHRASE`    | Passphrase for the GPG key               |
-| `APP_ID`            | GitHub App ID (org-level secret)         |
-| `APP_PRIVATE_KEY`   | GitHub App private key (org-level secret)|
+| Name                | Kind     | Purpose                                   |
+|---------------------|----------|-------------------------------------------|
+| `GPG_PRIVATE_KEY`   | secret   | Armored private key for signing           |
+| `GPG_PASSPHRASE`    | secret   | Passphrase for the GPG key                |
+| `APP_PRIVATE_KEY`   | secret   | GitHub App private key (org-level secret) |
+| `APP_CLIENT_ID`     | variable | GitHub App Client ID (org-level variable) |
 
 ### GitHub App Setup
 
@@ -193,13 +193,14 @@ The GitHub App is configured at the organization level. To verify or troubleshoo
 1. Confirm the App is installed on this repo:
    [knight-owl-dev GitHub Apps](https://github.com/organizations/knight-owl-dev/settings/installations)
 
-2. Verify org secrets are available:
+2. Verify org secrets and variables are available:
 
     ```bash
     gh secret list --org knight-owl-dev
+    gh variable list --org knight-owl-dev
     ```
 
-    You should see `APP_ID` and `APP_PRIVATE_KEY`.
+    You should see `APP_PRIVATE_KEY` among secrets and `APP_CLIENT_ID` among variables.
 
 3. If secrets need regeneration, go to the App settings and generate a new private key
 
