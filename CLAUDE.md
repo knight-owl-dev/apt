@@ -15,6 +15,7 @@ This design minimizes storage since only apt metadata is stored here, while bina
 ## Repository Structure
 
 ```plain
+.github/renovate.jsonc                   # Renovate config (actions, runners, images)
 biome.json                               # Biome (JS linter) configuration
 dists/stable/                            # Release files (Release, InRelease, Release.gpg)
 dists/stable/main/binary-{amd64,arm64}/  # Apt package metadata (Packages, Packages.gz)
