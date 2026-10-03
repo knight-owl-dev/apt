@@ -43,7 +43,7 @@ Workflows use minimal permissions by default:
 1. **Disable persist-credentials**:
 
    ```yaml
-   - uses: actions/checkout@v6
+   - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
      with:
        persist-credentials: false
    ```
@@ -54,6 +54,13 @@ Workflows use minimal permissions by default:
 2. **Token scoping**: The workflow uses two tokens with different scopes:
    - `github.token`: Read-only access for fetching releases
    - GitHub App token: Write access only for creating PRs (short-lived, generated on demand)
+
+### Pinned Dependencies
+
+Actions are pinned to a commit SHA with a version comment, runner labels name a version
+(`ubuntu-26.04-arm`, never `ubuntu-latest`), and container images carry a tag and digest. Renovate
+moves all three ([`.github/renovate.jsonc`](../../.github/renovate.jsonc)), so CI changes only
+through a reviewed PR.
 
 ### Concurrency Control
 

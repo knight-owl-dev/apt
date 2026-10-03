@@ -1,0 +1,36 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
+  // config:recommended is not extended: its presets address ecosystems this
+  // repo does not have.
+  "extends": ["docker:pinDigests"],
+
+  // Packages move through update-repo.yml, not here.
+  "enabledManagers": ["github-actions"],
+
+  "dependencyDashboard": true,
+
+  // Commit subjects here are plain imperative sentences.
+  "semanticCommits": "disabled",
+
+  // Every dependency here lives in a workflow.
+  "labels": ["dependencies", "github-actions"],
+
+  // No `schedule` here: renovate.yml's cron is the single owner of when this
+  // runs. A second window would make a workflow_dispatch outside it look like
+  // a no-op run.
+  "prConcurrentLimit": 5,
+
+  // A weekly run under the default hourly cap leaves every update past the
+  // second for next week; prConcurrentLimit already bounds the CI load.
+  "prHourlyLimit": 0,
+
+  "packageRules": [
+    {
+      "matchManagers": ["github-actions"],
+      "matchDepTypes": ["action"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "actions (minor and patch)"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+name: Renovate
+
+# Opens a PR when a dependency this repo pins has moved. What it scans and how
+# it groups is in .github/renovate.jsonc.
+
+on:
+  schedule:
+    # Monday at 07:00 UTC
+    - cron: '0 7 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: renovate
+
+jobs:
+  renovate:
+    name: Update Dependencies
+    runs-on: ubuntu-26.04-arm
+
+    # No checkout: Renovate clones the repository itself and reads
+    # .github/renovate.jsonc from that clone.
+    steps:
+      - name: Generate GitHub App token
+        id: app-token
+        # Needs contents:write (push the update branch), pull-requests:write
+        # (open the PR) and issues:write (the dependency dashboard is an issue).
+        # A PR opened with GITHUB_TOKEN would not trigger CI.
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          repositories: ${{ github.event.repository.name }}
+
+      - name: Run Renovate
+        # The image itself, not renovatebot/github-action: no wrapper action
+        # holds the App token.
+        uses: docker://ghcr.io/renovatebot/renovate:44.132.4@sha256:9dcc49a6a606720197d1dfc2ac4497710d1ea843b54c3706deb0a27985e3873b
+        env:
+          RENOVATE_TOKEN: ${{ steps.app-token.outputs.token }}
+          RENOVATE_REPOSITORIES: ${{ github.repository }}

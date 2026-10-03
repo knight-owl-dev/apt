@@ -21,13 +21,19 @@ concurrency:
 
 jobs:
   update:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04-arm
+    container: ghcr.io/knight-owl-dev/ci-tools:v1.6.1@sha256:822d75b014b3de9859297439df2d31b3a761a293db5d0b1874cd18c77f03068f
 
     steps:
       - name: Checkout apt repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+
+      # The container runs as a different user than the checkout's owner, so git
+      # refuses the repository. safe.directory is read only from protected config.
+      - name: Trust the checkout
+        run: git config --global --add safe.directory "${GITHUB_WORKSPACE}"
 
       # Generate App token early to allow propagation time across GitHub's
       # infrastructure before git push (avoids intermittent 403 errors)
@@ -38,9 +44,6 @@ jobs:
           client-id: ${{ vars.APP_CLIENT_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
           repositories: ${{ github.event.repository.name }}
-
-      - name: Install yq
-        run: sudo snap install yq
 
       - name: Build version arguments
         id: args

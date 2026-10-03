@@ -1,0 +1,5 @@
+# GitHub-hosted labels actionlint's built-in list lacks; drop each once
+# upstream knows it (https://github.com/rhysd/actionlint/issues/742).
+self-hosted-runner:
+  labels:
+    - ubuntu-26.04-arm
