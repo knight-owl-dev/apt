@@ -22,7 +22,7 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-26.04-arm
-    container: ghcr.io/knight-owl-dev/ci-tools:v1.6.1@sha256:822d75b014b3de9859297439df2d31b3a761a293db5d0b1874cd18c77f03068f
+    container: ghcr.io/knight-owl-dev/ci-tools:v1.6.2@sha256:3b63661c7cb1ffd25e76a61d781abd4746b6a7283cab9634d2465eb18cdceb56
 
     steps:
       - name: Checkout apt repository
