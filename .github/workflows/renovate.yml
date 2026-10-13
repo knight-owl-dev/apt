@@ -37,7 +37,7 @@ jobs:
       - name: Run Renovate
         # The image itself, not renovatebot/github-action: no wrapper action
         # holds the App token.
-        uses: docker://ghcr.io/renovatebot/renovate:44.132.4@sha256:9dcc49a6a606720197d1dfc2ac4497710d1ea843b54c3706deb0a27985e3873b
+        uses: docker://ghcr.io/renovatebot/renovate:44.154.0@sha256:1df371bf8cc46b6aef3e47b2cb4d9ba7255b5f6e97b2446bd71e0c566ddee068
         env:
           RENOVATE_TOKEN: ${{ steps.app-token.outputs.token }}
           RENOVATE_REPOSITORIES: ${{ github.repository }}
