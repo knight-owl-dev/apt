@@ -7,7 +7,7 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-26.04-arm
-    container: ghcr.io/knight-owl-dev/ci-tools:v1.7.0@sha256:874c21b95c53948677c55b558b4b128b38111d4ce567789cafc6344953b631cc
+    container: ghcr.io/knight-owl-dev/ci-tools:v1.8.1@sha256:2f3b4712e19b1d0aadf751739f472aa9dd892154f0cce29203c9ec4a36d0f75d
 
     steps:
       - name: Checkout
@@ -18,7 +18,7 @@ jobs:
 
   validate:
     runs-on: ubuntu-26.04-arm
-    container: ghcr.io/knight-owl-dev/ci-tools:v1.7.0@sha256:874c21b95c53948677c55b558b4b128b38111d4ce567789cafc6344953b631cc
+    container: ghcr.io/knight-owl-dev/ci-tools:v1.8.1@sha256:2f3b4712e19b1d0aadf751739f472aa9dd892154f0cce29203c9ec4a36d0f75d
 
     steps:
       - name: Checkout
